@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "python-flask-template"
+version = "0.1.0"
+description = ""
+authors = ["Shonte Amato-Grill <shonte.amatogrill@gmail.com>"]
+readme = "README.md"
+packages = [{include = "python_flask_template"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+black = "^22.12.0"
+pylint = "^2.15.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

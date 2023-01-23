@@ -8,6 +8,8 @@ packages = [{include = "python_flask_template"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+gunicorn = "^20.1.0"
+flask = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"

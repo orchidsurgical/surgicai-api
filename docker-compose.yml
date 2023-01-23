@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  python_flask_template:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8312:8312"

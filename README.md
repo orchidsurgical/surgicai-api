@@ -5,7 +5,9 @@ This repository contains a boilerplate quick-start for bootstrapping a Python-Fl
 * dependency management via Poetry,
 * basic python dependencies,
 * a dockerfile,
-* docker-compose integration,
+* docker-compose integration, including
+    * a docker-compose Redis cache,
+    * a Postgres database
 * a makefile,
 * a basic GitHub Actions workflow for quality checks
 

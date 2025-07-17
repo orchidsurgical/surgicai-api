@@ -1,16 +1,21 @@
+from wsgiref import validate
+
 from flask import g, request
 from flask_restful import Resource
 from marshmallow import Schema, ValidationError, fields
 
-from surgicai_api.models import OpNote
+from surgicai_api.api.fields import StrictUUID, validate_uuid
+from surgicai_api.models import OpNote, OpNoteStatus
 from surgicai_api.ssr.views import check_jwt
 
 
 class OpNoteSchema(Schema):
-    id = fields.UUID(dump_only=True)
-    owner_id = fields.String(dump_only=True)
+    id = StrictUUID(dump_only=True)
+    owner_id = StrictUUID(dump_only=True)
     title = fields.Str(required=True)
-    status = fields.Str()
+    status = fields.Enum(
+        OpNoteStatus, by_value=True, required=False, default=OpNoteStatus.DRAFT
+    )
     patient_id = fields.Str(allow_none=True)
     patient_first_name = fields.Str(allow_none=True)
     patient_last_name = fields.Str(allow_none=True)
@@ -28,7 +33,7 @@ class OpNoteListResource(Resource):
     method_decorators = [check_jwt]
 
     def get(self):
-        notes = g.db.query(OpNote).filter_by(owner_id=str(g.user.id)).all()
+        notes = g.db.query(OpNote).filter_by(owner_id=g.user.id).all()
         return schema.dump(notes, many=True), 200
 
     def post(self):
@@ -46,13 +51,21 @@ class OpNoteResource(Resource):
     method_decorators = [check_jwt]
 
     def get(self, note_id):
-        note = g.db.query(OpNote).filter_by(id=note_id, owner_id=str(g.user.id)).first()
+        note = (
+            g.db.query(OpNote)
+            .filter_by(id=validate_uuid(note_id), owner_id=g.user.id)
+            .first()
+        )
         if not note:
             return {"message": "Not Found"}, 404
         return schema.dump(note), 200
 
     def put(self, note_id):
-        note = g.db.query(OpNote).filter_by(id=note_id, owner_id=str(g.user.id)).first()
+        note = (
+            g.db.query(OpNote)
+            .filter_by(id=validate_uuid(note_id), owner_id=g.user.id)
+            .first()
+        )
         if not note:
             return {"message": "Not Found"}, 404
         try:
@@ -66,7 +79,11 @@ class OpNoteResource(Resource):
         return schema.dump(note), 200
 
     def delete(self, note_id):
-        note = g.db.query(OpNote).filter_by(id=note_id, owner_id=str(g.user.id)).first()
+        note = (
+            g.db.query(OpNote)
+            .filter_by(id=validate_uuid(note_id), owner_id=g.user.id)
+            .first()
+        )
         if not note:
             return {"message": "Not Found"}, 404
         g.db.delete(note)

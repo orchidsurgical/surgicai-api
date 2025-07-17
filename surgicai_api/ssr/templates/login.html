@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SurgicAI{% endblock %}
+
+{% block head %}
+<style>
+  .login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    pointer-events: none;
+  }
+  
+  .login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    max-width: 450px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .login-logo i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+  
+  .login-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .login-subtitle {
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+  
+  .form-floating {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-floating > .form-control {
+    height: 3.5rem;
+    padding: 1rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .form-floating > .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(0, 102, 204, 0.15);
+  }
+  
+  .form-floating > label {
+    padding: 1rem 1rem;
+    font-weight: 500;
+    color: #6c757d;
+  }
+  
+  .login-btn {
+    width: 100%;
+    height: 3.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    color: white;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+  }
+  
+  .login-btn:active {
+    transform: translateY(0);
+  }
+  
+  .login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .login-btn:hover::before {
+    left: 100%;
+  }
+  
+  .forgot-password {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .forgot-password a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .forgot-password a:hover {
+    color: var(--secondary-color);
+  }
+  
+  .login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .floating-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  .floating-shapes::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .floating-shapes::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: 10%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite reverse;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  .input-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 10;
+    transition: color 0.3s ease;
+  }
+  
+  .form-floating:focus-within .input-icon {
+    color: var(--primary-color);
+  }
+  
+  .password-toggle {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .alert {
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+  
+  .alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+  
+  .alert-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+  
+  .alert-info {
+    background: rgba(23, 162, 184, 0.1);
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+  }
+  
+  /* Loading animation */
+  .btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  
+  .btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Responsive design */
+  @media (max-width: 576px) {
+    .login-card {
+      margin: 1rem;
+      padding: 2rem;
+    }
+    
+    .login-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="floating-shapes"></div>
+  
+  <div class="login-card">
+    <div class="login-logo">
+      <i class="bi bi-activity"></i>
+      <h1 class="login-title">Surgical.AI</h1>
+      <p class="login-subtitle">Operative Notes. Powered by AI.</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+            <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' or category == 'danger' else 'info-circle' if category == 'info' else 'check-circle' }} me-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <form method="post" id="loginForm">
+      <div class="form-floating">
+        <input type="email" class="form-control" id="email" name="email" placeholder="Email address" required>
+        <label for="email">Email address</label>
+        <i class="bi bi-envelope input-icon"></i>
+      </div>
+      
+      <div class="form-floating">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+        <label for="password">Password</label>
+        <i class="bi bi-eye input-icon password-toggle" id="passwordToggle"></i>
+      </div>
+      
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
+        <label class="form-check-label" for="rememberMe">
+          Remember me
+        </label>
+      </div>
+      
+      <button type="submit" class="btn login-btn" id="loginBtn">
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        Sign In
+      </button>
+      
+      <div class="forgot-password">
+        <a href="#" onclick="showToast('Password reset feature coming soon!', 'info'); return false;">
+          <i class="bi bi-key me-1"></i>
+          Forgot your password?
+        </a>
+      </div>
+    </form>
+    
+    <div class="login-footer">
+      <p class="mb-0">
+        <i class="bi bi-shield-check me-1"></i>
+        Secure login protected by enterprise-grade encryption
+      </p>
+      <small class="text-muted">
+        © 2025 SurgicAI. All rights reserved.
+      </small>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const passwordToggle = document.getElementById('passwordToggle');
+  const passwordInput = document.getElementById('password');
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  
+  // Password visibility toggle
+  passwordToggle.addEventListener('click', function() {
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      passwordToggle.classList.remove('bi-eye');
+      passwordToggle.classList.add('bi-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      passwordToggle.classList.remove('bi-eye-slash');
+      passwordToggle.classList.add('bi-eye');
+    }
+  });
+  
+  // Form submission with loading state
+  loginForm.addEventListener('submit', function(e) {
+    loginBtn.classList.add('btn-loading');
+    loginBtn.innerHTML = '<span>Signing in...</span>';
+    
+    // Re-enable form after 5 seconds in case of error
+    setTimeout(() => {
+      loginBtn.classList.remove('btn-loading');
+      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+    }, 5000);
+  });
+  
+  // Input field animations
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.classList.remove('focused');
+      }
+    });
+  });
+  
+  // Auto-focus first input
+  document.getElementById('email').focus();
+});
+</script>
+{% endblock %}

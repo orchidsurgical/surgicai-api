@@ -1,0 +1,969 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Surgical.AI{% endblock %}
+
+{% block head %}
+<style>
+  .metric-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+  
+  .chart-container {
+    position: relative;
+    height: 300px;
+  }
+  
+  .quick-action-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  
+  .quick-action-card:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 102, 204, 0.05);
+  }
+  
+  .activity-item {
+    border-left: 3px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+  
+  .activity-item:hover {
+    border-left-color: var(--primary-color);
+  }
+  
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+  
+  .progress-ring__circle {
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 251.2;
+    transition: stroke-dashoffset 0.5s ease-in-out;
+  }
+  
+  .weather-widget {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+  }
+  
+  .time-widget {
+    background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+      <div class="mb-3 mb-md-0">
+        <h1 class="h3 mb-1">Welcome back, {{ user.first_name }}!</h1>
+        <p class="text-muted mb-0">
+          <i class="bi bi-calendar3 me-1"></i>
+          <span id="current-date"></span> • 
+          <i class="bi bi-clock me-1"></i>
+          <span id="current-time"></span>
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newPatientModal">
+          <i class="bi bi-plus-circle me-1"></i>New Patient
+        </button>
+        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#scheduleModal">
+          <i class="bi bi-calendar-plus me-1"></i>Schedule Procedure
+        </button>
+        <button class="btn btn-primary" onclick="refreshDashboard()">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-3 col-md-6">
+    <div class="card h-100 metric-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-person-hearts text-primary fs-4"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h6 class="card-title text-muted mb-1">Total Patients</h6>
+            <h3 class="mb-0">1,247</h3>
+            <small class="text-success">
+              <i class="bi bi-arrow-up"></i> 5.2% from last month
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6">
+    <div class="card h-100 metric-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="bg-success bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-clipboard2-pulse text-success fs-4"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h6 class="card-title text-muted mb-1">Procedures This Month</h6>
+            <h3 class="mb-0">89</h3>
+            <small class="text-success">
+              <i class="bi bi-arrow-up"></i> 12.5% from last month
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6">
+    <div class="card h-100 metric-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-calendar-event text-warning fs-4"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h6 class="card-title text-muted mb-1">Today's Appointments</h6>
+            <h3 class="mb-0">12</h3>
+            <small class="text-info">
+              <i class="bi bi-clock"></i> 3 remaining
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-3 col-md-6">
+    <div class="card h-100 metric-card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="bg-info bg-opacity-10 rounded-circle p-3">
+              <i class="bi bi-graph-up text-info fs-4"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h6 class="card-title text-muted mb-1">Success Rate</h6>
+            <h3 class="mb-0">98.2%</h3>
+            <small class="text-success">
+              <i class="bi bi-arrow-up"></i> 0.3% from last month
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-lightning me-2"></i>Quick Actions
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-person-plus text-primary fs-3 mb-2"></i>
+                <h6 class="card-title">Add Patient</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-calendar-plus text-success fs-3 mb-2"></i>
+                <h6 class="card-title">Schedule</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-file-earmark-medical text-info fs-3 mb-2"></i>
+                <h6 class="card-title">View Records</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-graph-up text-warning fs-3 mb-2"></i>
+                <h6 class="card-title">Reports</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-gear text-secondary fs-3 mb-2"></i>
+                <h6 class="card-title">Settings</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card quick-action-card text-center h-100">
+              <div class="card-body">
+                <i class="bi bi-question-circle text-dark fs-3 mb-2"></i>
+                <h6 class="card-title">Help</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="row g-4 mb-4">
+  <!-- Today's Schedule -->
+  <div class="col-xl-8 col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-calendar-week me-2"></i>Today's Schedule
+        </h5>
+        <div class="btn-group" role="group">
+          <button class="btn btn-sm btn-outline-secondary active" onclick="showSchedule('today')">Today</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="showSchedule('tomorrow')">Tomorrow</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="showSchedule('week')">This Week</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="list-group list-group-flush" id="schedule-list">
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div class="d-flex align-items-center">
+              <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                <i class="bi bi-scalpel text-primary"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Knee Replacement Surgery</h6>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-person me-1"></i>John Smith • 
+                  <i class="bi bi-clock me-1"></i>9:00 AM - 11:30 AM • 
+                  <i class="bi bi-geo-alt me-1"></i>OR 3
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="status-badge status-active">
+                <i class="bi bi-check-circle"></i>
+                Ready
+              </span>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-telephone me-2"></i>Call Patient</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div class="d-flex align-items-center">
+              <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                <i class="bi bi-clipboard2-check text-success"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Post-Op Consultation</h6>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-person me-1"></i>Sarah Johnson • 
+                  <i class="bi bi-clock me-1"></i>2:00 PM - 2:30 PM • 
+                  <i class="bi bi-geo-alt me-1"></i>Room 205
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="status-badge status-pending">
+                <i class="bi bi-clock"></i>
+                In Progress
+              </span>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-telephone me-2"></i>Call Patient</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div class="d-flex align-items-center">
+              <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                <i class="bi bi-clipboard2-pulse text-info"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Pre-Op Assessment</h6>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-person me-1"></i>Michael Davis • 
+                  <i class="bi bi-clock me-1"></i>4:00 PM - 4:45 PM • 
+                  <i class="bi bi-geo-alt me-1"></i>Room 102
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="status-badge status-active">
+                <i class="bi bi-check-circle"></i>
+                Scheduled
+              </span>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-telephone me-2"></i>Call Patient</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div class="d-flex align-items-center">
+              <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                <i class="bi bi-clipboard2-heart text-warning"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">Follow-up Appointment</h6>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-person me-1"></i>Emma Wilson • 
+                  <i class="bi bi-clock me-1"></i>5:30 PM - 6:00 PM • 
+                  <i class="bi bi-geo-alt me-1"></i>Room 301
+                </p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="status-badge status-pending">
+                <i class="bi bi-clock"></i>
+                Waiting
+              </span>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-telephone me-2"></i>Call Patient</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-3">
+          <a href="/schedule" class="btn btn-outline-primary">
+            <i class="bi bi-calendar-week me-1"></i>View Full Schedule
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right Sidebar -->
+  <div class="col-xl-4 col-lg-5">
+    <div class="row g-4">
+      <!-- Current Time & Weather Widget -->
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="card time-widget h-100">
+              <div class="card-body text-center">
+                <i class="bi bi-clock fs-3 mb-2"></i>
+                <h5 class="card-title" id="current-time-widget">--:--</h5>
+                <small>Current Time</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card weather-widget h-100">
+              <div class="card-body text-center">
+                <i class="bi bi-sun fs-3 mb-2"></i>
+                <h5 class="card-title">72°F</h5>
+                <small>Sunny</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Notifications -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+              <i class="bi bi-bell me-2"></i>Recent Notifications
+            </h5>
+            <span class="badge bg-danger">3</span>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <div class="list-group-item px-0 py-3 activity-item">
+                <div class="d-flex align-items-start">
+                  <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-check-circle text-success"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Surgery Completed</h6>
+                    <p class="text-muted mb-1">Hip replacement for Maria Garcia completed successfully</p>
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>2 hours ago
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="list-group-item px-0 py-3 activity-item">
+                <div class="d-flex align-items-start">
+                  <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-info-circle text-info"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Lab Results Available</h6>
+                    <p class="text-muted mb-1">Pre-op labs ready for review - Robert Wilson</p>
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>4 hours ago
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="list-group-item px-0 py-3 activity-item">
+                <div class="d-flex align-items-start">
+                  <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Appointment Rescheduled</h6>
+                    <p class="text-muted mb-1">Lisa Thompson moved appointment to next week</p>
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>1 day ago
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="list-group-item px-0 py-3 activity-item">
+                <div class="d-flex align-items-start">
+                  <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-exclamation-circle text-danger"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Emergency Alert</h6>
+                    <p class="text-muted mb-1">Patient vital signs require immediate attention</p>
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>2 days ago
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center mt-3">
+              <a href="/notifications" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-bell me-1"></i>View All Notifications
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Analytics Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-graph-up me-2"></i>Monthly Statistics
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-pie-chart me-2"></i>Procedure Distribution
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="procedureChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-activity me-2"></i>Recent Activity
+        </h5>
+        <div class="btn-group" role="group">
+          <button class="btn btn-sm btn-outline-secondary active" onclick="showActivity('today')">Today</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="showActivity('week')">This Week</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="showActivity('month')">This Month</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="timeline" id="activity-timeline">
+          <div class="timeline-item">
+            <div class="timeline-marker bg-success"></div>
+            <div class="timeline-content">
+              <h6 class="mb-1">Surgery Completed Successfully</h6>
+              <p class="text-muted mb-1">Knee replacement surgery for John Smith has been completed with no complications.</p>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>11:30 AM • 
+                <i class="bi bi-person me-1"></i>Dr. {{ user.first_name }} {{ user.last_name }}
+              </small>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-marker bg-info"></div>
+            <div class="timeline-content">
+              <h6 class="mb-1">New Patient Registered</h6>
+              <p class="text-muted mb-1">Emma Wilson has been added to the patient database.</p>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>10:15 AM • 
+                <i class="bi bi-person me-1"></i>Reception Staff
+              </small>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-marker bg-warning"></div>
+            <div class="timeline-content">
+              <h6 class="mb-1">Lab Results Reviewed</h6>
+              <p class="text-muted mb-1">Pre-operative lab results for Michael Davis have been reviewed and approved.</p>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>9:45 AM • 
+                <i class="bi bi-person me-1"></i>Dr. {{ user.first_name }} {{ user.last_name }}
+              </small>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-marker bg-primary"></div>
+            <div class="timeline-content">
+              <h6 class="mb-1">Appointment Scheduled</h6>
+              <p class="text-muted mb-1">Follow-up appointment scheduled for Sarah Johnson next week.</p>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>8:30 AM • 
+                <i class="bi bi-person me-1"></i>Scheduling Team
+              </small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-3">
+          <a href="/activity" class="btn btn-outline-primary">
+            <i class="bi bi-activity me-1"></i>View All Activity
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- New Patient Modal -->
+<div class="modal fade" id="newPatientModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-person-plus me-2"></i>Add New Patient
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="newPatientForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="firstName" required>
+            </div>
+            <div class="col-md-6">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="lastName" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email">
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone</label>
+              <input type="tel" class="form-control" id="phone">
+            </div>
+            <div class="col-md-6">
+              <label for="dateOfBirth" class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" id="dateOfBirth">
+            </div>
+            <div class="col-md-6">
+              <label for="gender" class="form-label">Gender</label>
+              <select class="form-select" id="gender">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label for="address" class="form-label">Address</label>
+              <textarea class="form-control" id="address" rows="3"></textarea>
+            </div>
+            <div class="col-12">
+              <label for="medicalHistory" class="form-label">Medical History</label>
+              <textarea class="form-control" id="medicalHistory" rows="3"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveNewPatient()">
+          <i class="bi bi-save me-1"></i>Save Patient
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-calendar-plus me-2"></i>Schedule Procedure
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="scheduleForm">
+          <div class="mb-3">
+            <label for="patientSelect" class="form-label">Patient</label>
+            <select class="form-select" id="patientSelect" required>
+              <option value="">Select Patient</option>
+              <option value="1">John Smith</option>
+              <option value="2">Sarah Johnson</option>
+              <option value="3">Michael Davis</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="procedureType" class="form-label">Procedure Type</label>
+            <select class="form-select" id="procedureType" required>
+              <option value="">Select Procedure</option>
+              <option value="knee-replacement">Knee Replacement</option>
+              <option value="hip-replacement">Hip Replacement</option>
+              <option value="consultation">Consultation</option>
+              <option value="follow-up">Follow-up</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="scheduleDate" class="form-label">Date</label>
+            <input type="date" class="form-control" id="scheduleDate" required>
+          </div>
+          <div class="mb-3">
+            <label for="scheduleTime" class="form-label">Time</label>
+            <input type="time" class="form-control" id="scheduleTime" required>
+          </div>
+          <div class="mb-3">
+            <label for="duration" class="form-label">Duration (hours)</label>
+            <input type="number" class="form-control" id="duration" min="0.5" step="0.5" value="1">
+          </div>
+          <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <select class="form-select" id="location">
+              <option value="">Select Location</option>
+              <option value="or1">Operating Room 1</option>
+              <option value="or2">Operating Room 2</option>
+              <option value="or3">Operating Room 3</option>
+              <option value="room101">Room 101</option>
+              <option value="room102">Room 102</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveProcedure()">
+          <i class="bi bi-calendar-check me-1"></i>Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -37px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+  
+  // Initialize charts if Chart.js is available
+  if (typeof Chart !== 'undefined') {
+    initializeCharts();
+  }
+});
+
+// Update date and time display
+function updateDateTime() {
+  const now = new Date();
+  const dateOptions = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  const timeOptions = { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit' 
+  };
+  
+  document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
+  document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+  
+  // Update widget time
+  const widgetTime = document.getElementById('current-time-widget');
+  if (widgetTime) {
+    widgetTime.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+// Refresh dashboard data
+function refreshDashboard() {
+  // Add loading state
+  const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"]');
+  const originalText = refreshBtn.innerHTML;
+  refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1 spinner-border spinner-border-sm"></i>Refreshing...';
+  refreshBtn.disabled = true;
+  
+  // Simulate API call
+  setTimeout(() => {
+    refreshBtn.innerHTML = originalText;
+    refreshBtn.disabled = false;
+    
+    // Show success message
+    showToast('Dashboard refreshed successfully!', 'success');
+  }, 1500);
+}
+
+// Show schedule for different time periods
+function showSchedule(period) {
+  // Update button states
+  document.querySelectorAll('button[onclick^="showSchedule"]').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // In a real app, this would fetch data from API
+  console.log(`Loading schedule for: ${period}`);
+}
+
+// Show activity for different time periods
+function showActivity(period) {
+  // Update button states
+  document.querySelectorAll('button[onclick^="showActivity"]').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // In a real app, this would fetch data from API
+  console.log(`Loading activity for: ${period}`);
+}
+
+// Save new patient
+function saveNewPatient() {
+  const form = document.getElementById('newPatientForm');
+  if (form.checkValidity()) {
+    // Simulate API call
+    showToast('New patient saved successfully!', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('newPatientModal')).hide();
+    form.reset();
+  } else {
+    form.reportValidity();
+  }
+}
+
+// Save procedure
+function saveProcedure() {
+  const form = document.getElementById('scheduleForm');
+  if (form.checkValidity()) {
+    // Simulate API call
+    showToast('Procedure scheduled successfully!', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+    form.reset();
+  } else {
+    form.reportValidity();
+  }
+}
+
+// Initialize charts (requires Chart.js)
+function initializeCharts() {
+  // Monthly Statistics Chart
+  const monthlyCtx = document.getElementById('monthlyChart');
+  if (monthlyCtx) {
+    new Chart(monthlyCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+          label: 'Procedures',
+          data: [65, 78, 90, 81, 89, 105],
+          borderColor: 'var(--primary-color)',
+          backgroundColor: 'rgba(0, 102, 204, 0.1)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+  
+  // Procedure Distribution Chart
+  const procedureCtx = document.getElementById('procedureChart');
+  if (procedureCtx) {
+    new Chart(procedureCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Knee Replacement', 'Hip Replacement', 'Consultations', 'Follow-ups', 'Other'],
+        datasets: [{
+          data: [30, 25, 20, 15, 10],
+          backgroundColor: [
+            'var(--primary-color)',
+            'var(--success-color)',
+            'var(--info-color)',
+            'var(--warning-color)',
+            'var(--danger-color)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+}
+</script>
+{% endblock %}

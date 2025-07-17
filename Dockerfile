@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as base
+FROM ubuntu:22.04 AS base
 
 # Environment vars
 ENV PATH="${PATH}:/root/.local/bin"
@@ -8,8 +8,11 @@ RUN apt-get update && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y python3.10 python3-distutils python3-apt && \
+    apt-get install -y python3.10 python3-distutils python3-apt make && \
     apt-get install -y curl
+
+# Create python symlink
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
@@ -18,19 +21,18 @@ RUN poetry config virtualenvs.create true
 # Copy over directory
 COPY . .
 
-FROM base as prod
+FROM base AS prod
 
 # Install prod dependencies
-RUN poetry install --no-dev
+RUN poetry install --without dev
 
 # Start prod service
-CMD [ "poetry", "run", "gunicorn", "--bind=0.0.0.0:8312", "python_flask_template.app:app" ]
+CMD [ "make", "run-prod" ]
 
-FROM prod as dev
+FROM prod AS dev
 
 # Install dev dependencies
 RUN poetry install
 
 # Start dev service
-CMD [ "poetry", "run", "python3", "-m" , "flask", "--app=python_flask_template.app", "run", "--host=0.0.0.0", "--port=8312"]
-
+CMD [ "make", "run-dev" ]

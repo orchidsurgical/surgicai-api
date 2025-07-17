@@ -3,6 +3,7 @@ from enum import Enum
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from surgicai_api.models import BaseModel
@@ -20,7 +21,7 @@ class OpNote(BaseModel):
 
     __tablename__ = "op_notes"
 
-    owner_id = Column(String(255), ForeignKey("users.id"), nullable=False)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     title = Column(String(255), nullable=False)
     status = Column(SqlEnum(OpNoteStatus), nullable=False, default=OpNoteStatus.DRAFT)
     patient_id = Column(String(255), nullable=True)

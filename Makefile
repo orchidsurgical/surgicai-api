@@ -39,6 +39,7 @@ make-migration:	## Create a new database migration and copy it locally.
 	make format
 
 apply-migrations: ## Apply all database migrations.
+	docker-compose build api
 	docker-compose run api poetry run alembic upgrade head
 
 down-migration: ## Rollback the last database migration.

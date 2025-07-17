@@ -3,6 +3,7 @@ from enum import Enum
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import String
+from sqlalchemy.orm import relationship
 
 from surgicai_api.models.base import BaseModel
 
@@ -25,6 +26,8 @@ class User(BaseModel):
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     user_type = Column(SqlEnum(UserType), nullable=False, default=UserType.SURGEON)
+
+    op_notes = relationship("OpNote", back_populates="owner", lazy="dynamic")
 
     def __repr__(self):
         return f"<User(email={self.email})>"

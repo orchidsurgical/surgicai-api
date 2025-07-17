@@ -2,7 +2,8 @@ from enum import Enum
 
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SqlEnum
-from sqlalchemy import String, Text
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import relationship
 
 from surgicai_api.models import BaseModel
 
@@ -19,6 +20,7 @@ class OpNote(BaseModel):
 
     __tablename__ = "op_notes"
 
+    owner_id = Column(String(255), ForeignKey("users.id"), nullable=False)
     title = Column(String(255), nullable=False)
     status = Column(SqlEnum(OpNoteStatus), nullable=False, default=OpNoteStatus.DRAFT)
     patient_id = Column(String(255), nullable=True)
@@ -27,6 +29,8 @@ class OpNote(BaseModel):
     operation_datetime_start = Column(DateTime, nullable=True)
     operation_datetime_end = Column(DateTime, nullable=True)
     text = Column(Text, nullable=True)
+
+    owner = relationship("User", back_populates="op_notes")
 
     def __repr__(self):
         return f"<OpNote(title={self.title})>"

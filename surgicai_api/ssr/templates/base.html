@@ -209,7 +209,7 @@
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand d-flex align-items-center" href="/">
-        <i class="bi bi-activity me-2"></i>
+        <i class="bi bi-file-medical me-2"></i>
         Surgical.AI
       </a>
       
@@ -218,22 +218,17 @@
           {% if user %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('ssr.home.home') }}">
-                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                <i class="bi bi-scalpel me-1"></i>Dashboard
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#" onclick="showToast('Patients page coming soon!', 'info'); return false;">
-                <i class="bi bi-person-hearts me-1"></i>Patients
+                <i class="bi bi-file-earmark-medical me-1"></i>Operative Notes
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#" onclick="showToast('Procedures page coming soon!', 'info'); return false;">
-                <i class="bi bi-clipboard2-pulse me-1"></i>Procedures
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" onclick="showToast('Analytics page coming soon!', 'info'); return false;">
-                <i class="bi bi-graph-up me-1"></i>Analytics
+                <i class="bi bi-file-earmark-text me-1"></i>Templates
               </a>
             </li>
           {% endif %}

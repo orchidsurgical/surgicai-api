@@ -13,5 +13,13 @@ class Config:
     JWT_ALGORITHM = env.str("JWT_ALGORITHM", default="HS256")
     JWT_EXP_DELTA_SECONDS = env.int("JWT_EXP_DELTA_SECONDS", default=43200)
 
+    AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID", default="")
+    AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY", default="")
+    AWS_REGION = env.str("AWS_REGION", default="us-east-1")
+    AWS_DEFAULT_REGION = env.str("AWS_DEFAULT_REGION", default="us-east-1")
+
+    EMAIL_HANDLER_CLASS = env.str("EMAIL_HANDLER_CLASS", default=None)
+    EMAIL_QUEUE_URL = env.str("EMAIL_QUEUE_URL", default=None)
+
 
 config = Config()

@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from surgicai_api import config
+from surgicai_api.extensions import boto, cors, emails
 from surgicai_api.ssr.router import ssr_router
 
 app = Flask(__name__, template_folder="ssr/templates")
@@ -17,6 +18,16 @@ app.register_blueprint(ssr_router)
 engine = create_engine(app.config["DATABASE_URL"])
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 app.SessionLocal = SessionLocal
+
+# Register extensions
+def register_extensions(app: Flask):
+    """Register Flask extensions."""
+    # Here you can register any Flask extensions you need
+    cors.init_app(app)
+    emails.init_app(app)
+
+
+register_extensions(app)
 
 
 @app.before_request

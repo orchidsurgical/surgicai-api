@@ -8,4 +8,4 @@ home_bp = Blueprint("home", __name__)
 @home_bp.route("/dashboard", methods=["GET"])
 @check_jwt
 def home():
-    return render_template("home.html", user=g.user)
+    return render_template("dashboard.html", user=g.user)

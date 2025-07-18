@@ -1,10 +1,10 @@
-from wsgiref import validate
+from datetime import datetime
 
 from flask import g, request
 from flask_restful import Resource
 from marshmallow import Schema, ValidationError, fields
 
-from surgicai_api.api.fields import StrictUUID, validate_uuid
+from surgicai_api.api.fields import DateTimeWithTZ, StrictUUID, validate_uuid
 from surgicai_api.models import OpNote, OpNoteStatus
 from surgicai_api.ssr.views import check_jwt
 
@@ -19,11 +19,11 @@ class OpNoteSchema(Schema):
     patient_id = fields.Str(allow_none=True)
     patient_first_name = fields.Str(allow_none=True)
     patient_last_name = fields.Str(allow_none=True)
-    operation_datetime_start = fields.DateTime(allow_none=True)
-    operation_datetime_end = fields.DateTime(allow_none=True)
+    operation_datetime_start = DateTimeWithTZ(allow_none=True)
+    operation_datetime_end = DateTimeWithTZ(allow_none=True)
     text = fields.Str(allow_none=True)
-    created_at = fields.DateTime(dump_only=True)
-    updated_at = fields.DateTime(dump_only=True)
+    created_at = DateTimeWithTZ(dump_only=True)
+    updated_at = DateTimeWithTZ(dump_only=True)
 
 
 schema = OpNoteSchema()

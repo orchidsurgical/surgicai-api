@@ -1,0 +1,961 @@
+{% extends "base.html" %}
+
+{% block title %}Document Editor - Operative.AI{% endblock %}
+
+{% block head %}
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<style>
+  .editor-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .editor-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .editor-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    cursor: text;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .editor-title:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .editor-title:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+  }
+  
+  .editor-title::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .editor-title.modified {
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.5);
+  }
+  
+  .editor-title.modified::after {
+    content: "*";
+    color: rgba(255, 193, 7, 0.8);
+    margin-left: 0.25rem;
+  }
+  
+  .editor-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .status-indicator {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  .unsaved-indicator {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: rgba(255, 193, 7, 0.2);
+    color: rgba(255, 193, 7, 0.9);
+    backdrop-filter: blur(10px);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  .patient-info {
+    background: #f8f9fa;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .patient-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  .info-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .info-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .info-value {
+    font-size: 1rem;
+    color: var(--dark-text);
+    font-weight: 500;
+  }
+  
+  .editor-toolbar {
+    background: white;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .toolbar-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background: #dee2e6;
+    margin: 0 0.5rem;
+  }
+  
+  .editor-content {
+    padding: 0;
+    min-height: 500px;
+  }
+  
+  .quill-container {
+    border: none;
+    height: 500px;
+  }
+  
+  .ql-editor {
+    padding: 2rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--dark-text);
+    min-height: 456px;
+  }
+  
+  .ql-editor.ql-blank::before {
+    left: 2rem;
+    right: 2rem;
+    font-style: italic;
+    color: #999;
+  }
+  
+  .ql-toolbar {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 2rem;
+    background: #f8f9fa;
+  }
+  
+  .ql-toolbar .ql-formats {
+    margin-right: 1rem;
+  }
+  
+  .save-indicator {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  
+  .save-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .save-indicator.saving {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+  }
+  
+  .save-indicator.saved {
+    background: #d1e7dd;
+    border-color: #198754;
+    color: #0a3622;
+  }
+  
+  .save-indicator.error {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+  
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-left: auto;
+  }
+  
+  .btn-outline-primary {
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+  }
+  
+  .btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+  }
+  
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @media (max-width: 768px) {
+    .editor-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .patient-info-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .editor-toolbar {
+      padding: 1rem;
+    }
+    
+    .ql-editor {
+      padding: 1rem;
+    }
+    
+    .save-indicator {
+      right: 10px;
+      top: 80px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <div>Loading operative note...</div>
+  </div>
+</div>
+
+<div class="container-fluid py-4">
+  <div class="editor-container">
+    <div class="editor-header">
+      <input type="text" class="editor-title" id="documentTitle" placeholder="Enter document title..." maxlength="255">
+      <div class="editor-status">
+        <span class="unsaved-indicator" id="unsavedIndicator" style="display: none;">
+          <i class="bi bi-exclamation-circle me-1"></i>Unsaved changes
+        </span>
+        <span id="lastUpdated">...</span>
+      </div>
+    </div>
+    
+    <div class="patient-info" id="patientInfo">
+      <div class="patient-info-grid">
+        <div class="info-field">
+          <div class="info-label">Patient ID <i class="bi bi-info-circle-fill text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="A de-identified patient identifier, for your records."></i></div>
+          <div class="info-value" id="patientId">-</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Operation Start</div>
+          <div class="info-value" id="operationStart">-</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Operation End</div>
+          <div class="info-value" id="operationEnd">-</div>
+        </div>
+        <div class="info-field">
+            <div class="info-label">Suggested Billing Codes <i class="bi bi-info-circle-fill text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Billing codes are generated using AI, based on your operative note, for maximized billables."></i></div>
+            <div class="info-value" id="billingCodes">-</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="editor-toolbar">
+      <div class="toolbar-group">
+        <button class="btn btn-sm btn-outline-primary" onclick="editPatientInfo()">
+          <i class="bi bi-pencil me-1"></i>Edit Patient Info
+        </button>
+        <button class="btn btn-sm btn-outline-primary" onclick="">
+          <i class="bi bi-cpu-fill me-1"></i>Generate Billing Codes
+        </button>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
+          <i class="bi bi-save me-1"></i>Save
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="backToDashboard()">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </button>
+      </div>
+    </div>
+    
+    <div class="editor-content">
+      <div id="editor"></div>
+    </div>
+  </div>
+</div>
+
+<div class="save-indicator" id="saveIndicator">
+  <span class="spinner" id="saveSpinner" style="display: none;"></span>
+  <i class="bi bi-check-circle" id="saveIcon" style="display: none;"></i>
+  <i class="bi bi-exclamation-triangle" id="errorIcon" style="display: none;"></i>
+  <span id="saveMessage">Saved</span>
+</div>
+
+<!-- Patient Info Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Patient Information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="patientForm">
+          <div class="mb-3">
+            <label class="form-label">Patient ID</label>
+            <input type="text" class="form-control" id="modalPatientId" name="patient_id">
+            <div class="form-text">
+              <i class="bi bi-info-circle text-muted"></i>
+              A de-identified patient identifier, for your records.
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Operation Start</label>
+                <input type="datetime-local" class="form-control" id="modalOperationStart" name="operation_datetime_start">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Operation End</label>
+                <input type="datetime-local" class="form-control" id="modalOperationEnd" name="operation_datetime_end">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="savePatientInfo()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+  // Global variables
+  let quill;
+  let currentNote = null;
+  let autoSaveInterval = null;
+  let isLoading = false;
+  let hasUnsavedChanges = false;
+  let isInitialLoad = true; // Flag to prevent triggering unsaved changes during initial load
+  
+  // Initialize the editor
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Editor page loaded');
+    
+    // Wait for Quill to load
+    function waitForQuill() {
+      if (typeof Quill !== 'undefined') {
+        console.log('Quill is available, initializing editor...');
+        initializeQuill();
+        loadDocument();
+        setupAutoSave();
+        setupBeforeUnload();
+        setupTitleChangeListener();
+        initializeTooltips();
+      } else {
+        console.log('Waiting for Quill to load...');
+        setTimeout(waitForQuill, 100);
+      }
+    }
+    
+    waitForQuill();
+  });
+  
+  function initializeQuill() {
+    try {
+      const editorElement = document.getElementById('editor');
+      if (!editorElement) {
+        throw new Error('Editor element not found');
+      }
+      
+      const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'header': 1 }, { 'header': 2 }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+        ['clean']
+      ];
+      
+      quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+          toolbar: toolbarOptions
+        },
+        placeholder: 'Start typing your operative note...'
+      });
+      
+      console.log('Quill initialized successfully');
+      
+      // Listen for text changes
+      quill.on('text-change', function(delta, oldDelta, source) {
+        if (source === 'user' && !isInitialLoad) {
+          hasUnsavedChanges = true;
+          updateSaveIndicator('modified');
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing Quill:', error);
+      showToast('Error initializing editor. Please refresh the page.', 'danger');
+    }
+  }
+  
+  function loadDocument() {
+    const noteId = '{{ note_id }}';
+    console.log('Loading document:', noteId);
+    
+    showLoading(true);
+    
+    fetch(`/api/v1/opnote/${noteId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Document loaded:', data);
+      currentNote = data;
+      populateDocument(data);
+      hasUnsavedChanges = false;
+      // Don't show any save indicator on initial load
+    })
+    .catch(error => {
+      console.error('Error loading document:', error);
+      showToast('Error loading document: ' + error.message, 'danger');
+      updateSaveIndicator('error');
+    })
+    .finally(() => {
+      showLoading(false);
+    });
+  }
+  
+  function populateDocument(note) {
+    // Update header
+    document.getElementById('documentTitle').value = note.title || '';
+    
+    // Update last updated with better formatting
+    const lastUpdated = note.updated_at ? 
+      new Date(note.updated_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }) : 'Never';
+    document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
+    
+    // Update patient info
+    document.getElementById('patientId').textContent = note.patient_id || '-';
+    
+    // Format dates for display
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+    
+    document.getElementById('operationStart').textContent = formatDate(note.operation_datetime_start);
+    document.getElementById('operationEnd').textContent = formatDate(note.operation_datetime_end);
+    
+    // Set editor content
+    if (note.text && quill) {
+      // Use setContents with 'silent' source to avoid triggering text-change event
+      const delta = quill.clipboard.convert(note.text);
+      quill.setContents(delta, 'silent');
+    } else if (note.text) {
+      // Fallback if Quill isn't ready yet
+      const editorElement = document.getElementById('editor');
+      if (editorElement) {
+        editorElement.innerHTML = note.text;
+      }
+    }
+    
+    // Update button states
+    updateButtonStates(note.status);
+    
+    // Reset initial load flag after document is fully populated
+    setTimeout(() => {
+      isInitialLoad = false;
+    }, 100);
+  }
+  
+  function updateButtonStates(status) {
+    const saveButton = document.getElementById('saveButton');
+    const titleInput = document.getElementById('documentTitle');
+    
+    if (status === 'submitted') {
+      saveButton.disabled = true;
+      if (titleInput) {
+        titleInput.disabled = true;
+        titleInput.style.cursor = 'not-allowed';
+        titleInput.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+      }
+      if (quill) {
+        quill.disable();
+      }
+    } else {
+      saveButton.disabled = false;
+      if (titleInput) {
+        titleInput.disabled = false;
+        titleInput.style.cursor = 'text';
+        titleInput.style.backgroundColor = 'transparent';
+      }
+      if (quill) {
+        quill.enable();
+      }
+    }
+  }
+  
+  function saveDocument() {
+    if (isLoading) return;
+    
+    const noteId = '{{ note_id }}';
+    let content = '';
+    
+    if (quill) {
+      content = quill.root.innerHTML;
+    } else {
+      // Fallback to get content from editor element
+      const editorElement = document.getElementById('editor');
+      if (editorElement) {
+        content = editorElement.innerHTML;
+      }
+    }
+    
+    const titleInput = document.getElementById('documentTitle');
+    const title = titleInput ? titleInput.value.trim() : '';
+    
+    if (!title) {
+      showToast('Please enter a title for the document', 'warning');
+      titleInput?.focus();
+      return;
+    }
+    
+    const updateData = {
+      title: title,
+      text: content
+    };
+    
+    console.log('Saving document:', updateData);
+    updateSaveIndicator('saving');
+    
+    fetch(`/api/v1/opnote/${noteId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updateData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Document saved:', data);
+      currentNote = data;
+      hasUnsavedChanges = false;
+      updateSaveIndicator('saved');
+      
+      // Remove modified class from title
+      const titleInput = document.getElementById('documentTitle');
+      if (titleInput) {
+        titleInput.classList.remove('modified');
+      }
+      
+      // Update last updated time with better formatting
+      const lastUpdated = new Date(data.updated_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
+      
+      showToast('Document saved successfully', 'success');
+    })
+    .catch(error => {
+      console.error('Error saving document:', error);
+      updateSaveIndicator('error');
+      showToast('Error saving document: ' + error.message, 'danger');
+    });
+  }
+  
+  function editPatientInfo() {
+    if (!currentNote) return;
+    
+    // Populate modal with current data
+    document.getElementById('modalPatientId').value = currentNote.patient_id || '';
+    
+    // Format dates for datetime-local inputs
+    const formatForInput = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      // Format for datetime-local input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
+    document.getElementById('modalOperationStart').value = formatForInput(currentNote.operation_datetime_start);
+    document.getElementById('modalOperationEnd').value = formatForInput(currentNote.operation_datetime_end);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('patientModal'));
+    modal.show();
+  }
+  
+  function savePatientInfo() {
+    if (isLoading) return;
+    
+    const noteId = '{{ note_id }}';
+    const formData = new FormData(document.getElementById('patientForm'));
+    
+    // Convert datetime-local values to proper format for API
+    const updateData = {
+      patient_id: formData.get('patient_id') || null,
+      operation_datetime_start: formData.get('operation_datetime_start') || null,
+      operation_datetime_end: formData.get('operation_datetime_end') || null
+    };
+    
+    console.log('Saving patient info:', updateData);
+    
+    fetch(`/api/v1/opnote/${noteId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updateData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Patient info saved:', data);
+      currentNote = data;
+      
+      // Update patient info display
+      document.getElementById('patientId').textContent = data.patient_id || '-';
+      
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      };
+      
+      document.getElementById('operationStart').textContent = formatDate(data.operation_datetime_start);
+      document.getElementById('operationEnd').textContent = formatDate(data.operation_datetime_end);
+      
+      // Update last updated time with better formatting
+      const lastUpdated = new Date(data.updated_at).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
+      
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('patientModal'));
+      modal.hide();
+      
+      showToast('Patient information updated successfully', 'success');
+    })
+    .catch(error => {
+      console.error('Error saving patient info:', error);
+      showToast('Error saving patient information: ' + error.message, 'danger');
+    });
+  }
+  
+  function setupAutoSave() {
+    // Auto-save every 30 seconds if there are unsaved changes
+    autoSaveInterval = setInterval(() => {
+      if (hasUnsavedChanges && !isLoading && currentNote && currentNote.status !== 'submitted') {
+        console.log('Auto-saving document...');
+        saveDocument();
+      }
+    }, 30000); // 30 seconds
+  }
+  
+  function setupTitleChangeListener() {
+    const titleInput = document.getElementById('documentTitle');
+    if (titleInput) {
+      titleInput.addEventListener('input', function() {
+        const hasChanged = this.value !== (currentNote?.title || '');
+        if (hasChanged && !isInitialLoad) {
+          hasUnsavedChanges = true;
+          updateSaveIndicator('modified');
+          this.classList.add('modified');
+        } else {
+          this.classList.remove('modified');
+        }
+      });
+      
+      // Save title on blur if it has changed
+      titleInput.addEventListener('blur', function() {
+        if (hasUnsavedChanges && this.value !== (currentNote?.title || '')) {
+          console.log('Title changed, auto-saving...');
+          saveDocument();
+        }
+      });
+      
+      // Save title on Enter key
+      titleInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.blur(); // Trigger blur event to save
+        }
+      });
+    }
+  }
+  
+  function setupBeforeUnload() {
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    });
+  }
+  
+  function updateSaveIndicator(state) {
+    const indicator = document.getElementById('saveIndicator');
+    const spinner = document.getElementById('saveSpinner');
+    const saveIcon = document.getElementById('saveIcon');
+    const errorIcon = document.getElementById('errorIcon');
+    const message = document.getElementById('saveMessage');
+    const unsavedIndicator = document.getElementById('unsavedIndicator');
+    
+    // Reset
+    indicator.className = 'save-indicator';
+    spinner.style.display = 'none';
+    saveIcon.style.display = 'none';
+    errorIcon.style.display = 'none';
+    
+    switch(state) {
+      case 'saving':
+        indicator.className = 'save-indicator saving show';
+        spinner.style.display = 'inline-block';
+        message.textContent = 'Saving...';
+        if (unsavedIndicator) unsavedIndicator.style.display = 'none';
+        break;
+      case 'saved':
+        indicator.className = 'save-indicator saved show';
+        saveIcon.style.display = 'inline-block';
+        message.textContent = 'Saved';
+        if (unsavedIndicator) unsavedIndicator.style.display = 'none';
+        setTimeout(() => {
+          indicator.classList.remove('show');
+        }, 2000);
+        break;
+      case 'error':
+        indicator.className = 'save-indicator error show';
+        errorIcon.style.display = 'inline-block';
+        message.textContent = 'Error saving';
+        if (unsavedIndicator) unsavedIndicator.style.display = 'inline-block';
+        setTimeout(() => {
+          indicator.classList.remove('show');
+        }, 5000);
+        break;
+      case 'modified':
+        indicator.className = 'save-indicator show';
+        message.textContent = 'Unsaved changes';
+        if (unsavedIndicator) unsavedIndicator.style.display = 'inline-block';
+        break;
+    }
+  }
+  
+  function showLoading(show) {
+    isLoading = show;
+    const overlay = document.getElementById('loadingOverlay');
+    if (show) {
+      overlay.classList.add('show');
+    } else {
+      overlay.classList.remove('show');
+    }
+  }
+  
+  function backToDashboard() {
+    if (hasUnsavedChanges) {
+      if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
+        return;
+      }
+    }
+    window.location.href = '/dashboard';
+  }
+  
+  function initializeTooltips() {
+    // Initialize tooltips for info icons
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // Clean up on page unload
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveInterval) {
+      clearInterval(autoSaveInterval);
+    }
+  });
+</script>
+{% endblock %}

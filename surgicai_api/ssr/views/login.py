@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from flask import Blueprint
 from flask import current_app as app
 from flask import flash, redirect, render_template, request, url_for
@@ -23,18 +25,31 @@ def login():
     if request.cookies.get("jwt"):
         return redirect(url_for("ssr.home.home"))
 
+    session = app.SessionLocal()
+
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        user = authenticate_user_password(app.SessionLocal(), email, password)
+        user = authenticate_user_password(session, email, password)
         if user:
-            token = generate_jwt_token(user)
             if request.args.get("next"):
                 resp = redirect(request.args.get("next"))
             else:
-                resp = redirect(
-                    url_for(REDIRECT_USER_TYPE.get(user.user_type, "ssr.home.home"))
-                )
+                if not user.last_login:
+                    # first login, redirect to preferences
+                    resp = redirect(url_for("ssr.home.preferences"))
+                else:
+                    resp = redirect(
+                        url_for(REDIRECT_USER_TYPE.get(user.user_type, "ssr.home.home"))
+                    )
+
+            # Update last_login to current UTC time
+            user.last_login = datetime.now(timezone.utc)
+            session.add(user)
+            session.commit()
+
+            # Generate JWT token
+            token = generate_jwt_token(user)
             resp.set_cookie("jwt", token, httponly=True, secure=True, samesite="Lax")
             return resp
         else:

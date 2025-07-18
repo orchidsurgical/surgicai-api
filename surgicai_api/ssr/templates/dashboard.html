@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Surgical.AI{% endblock %}
+{% block title %}Dashboard - Operative.AI{% endblock %}
 
 {% block head %}
 <style>
@@ -253,11 +253,11 @@
           </div>
         </div>
         
-        <div class="text-center mt-3">
+        <!-- <div class="text-center mt-3">
           <a href="#" class="btn btn-outline-primary">
             <i class="bi bi-arrow-clockwise me-1"></i>Load More Operative Notes
           </a>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -277,13 +277,13 @@
       <div class="modal-body">
         <form id="newOpNoteForm">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label for="patientFirstName" class="form-label">Patient First Name</label>
-              <input type="text" class="form-control" id="patientFirstName" required>
-            </div>
-            <div class="col-md-6">
-              <label for="patientLastName" class="form-label">Patient Last Name</label>
-              <input type="text" class="form-control" id="patientLastName" required>
+            <div class="col-md-12">
+              <label for="patientId" class="form-label">Patient ID</label>
+              <input type="text" class="form-control" id="patientId">
+              <div class="form-text">
+                <i class="bi bi-info-circle text-muted"></i>
+                A de-identified patient identifier, for your records.
+              </div>
             </div>
             <div class="col-md-6">
               <label for="startDateTime" class="form-label">Start Date & Time</label>
@@ -297,10 +297,6 @@
               <label for="title" class="form-label">Title</label>
               <input type="text" class="form-control" id="title" required placeholder="Enter operative note title">
             </div>
-            <div class="col-12">
-              <label for="notes" class="form-label">Additional Notes (Optional)</label>
-              <textarea class="form-control" id="notes" rows="3" placeholder="Any additional notes about the procedure..."></textarea>
-            </div>
           </div>
         </form>
       </div>
@@ -308,6 +304,36 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" onclick="saveNewOperativeNote()">
           <i class="bi bi-save me-1"></i>Create Operative Note
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteNoteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirm Delete
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this operative note?</p>
+        <p class="text-muted mb-0">
+          <strong>Note:</strong> <span id="deleteNoteTitle"></span>
+        </p>
+        <div class="alert alert-warning mt-3 mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          This action cannot be undone.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="bi bi-trash me-1"></i>Delete Operative Note
         </button>
       </div>
     </div>
@@ -384,17 +410,33 @@ document.addEventListener('DOMContentLoaded', function() {
       const startInput = document.getElementById('startDateTime');
       const endInput = document.getElementById('endDateTime');
       
+      // Format for datetime-local input
+      const formatForDateTimeLocal = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+      
       if (startInput) {
-        startInput.value = now.toISOString().slice(0, 16);
+        startInput.value = formatForDateTimeLocal(now);
       }
       
       // Set default end time to 2 hours later
       if (endInput) {
         const endTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-        endInput.value = endTime.toISOString().slice(0, 16);
+        endInput.value = formatForDateTimeLocal(endTime);
       }
     });
   }
+  
+  // Initialize tooltips
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
 });
 
 // Update current date and time display
@@ -500,7 +542,7 @@ function updateOperativeNotesList(notes) {
   }
   
   notes.forEach(note => {
-    const patientName = `${note.patient_first_name || ''} ${note.patient_last_name || ''}`.trim() || 'Unknown Patient';
+    const patientId = note.patient_id || 'Unknown Patient ID';
     
     // Format dates
     let startTime = 'Not scheduled';
@@ -539,8 +581,9 @@ function updateOperativeNotesList(notes) {
         <div>
           <h6 class="mb-1">${escapeHtml(note.title)}</h6>
           <p class="text-muted mb-0">
-            <i class="bi bi-person me-1"></i>${escapeHtml(patientName)} • 
-            <i class="bi bi-clock me-1"></i>${timeRange}
+            <i class="bi bi-person me-1"></i>Patient ID: ${escapeHtml(patientId)}
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="A de-identified patient identifier, for your records." style="color: #6c757d; font-size: 0.875rem;"></i>
+            • <i class="bi bi-clock me-1"></i>${timeRange}
           </p>
         </div>
       </div>
@@ -559,6 +602,12 @@ function updateOperativeNotesList(notes) {
     `;
     
     scheduleList.appendChild(noteItem);
+  });
+  
+  // Reinitialize tooltips after updating the list
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
   });
 }
 
@@ -605,22 +654,23 @@ function saveNewOperativeNote() {
   
   // Get form data
   const formData = {
-    patient_first_name: document.getElementById('patientFirstName').value,
-    patient_last_name: document.getElementById('patientLastName').value,
-    operation_datetime_start: document.getElementById('startDateTime').value,
-    operation_datetime_end: document.getElementById('endDateTime').value,
+    patient_id: document.getElementById('patientId').value,
+    operation_datetime_start: document.getElementById('startDateTime').value || null,
+    operation_datetime_end: document.getElementById('endDateTime').value || null,
     title: document.getElementById('title').value,
-    text: document.getElementById('notes').value || null,
+    text: null,
     status: 'draft'
   };
   
   // Validate end time is after start time
-  const startTime = new Date(formData.operation_datetime_start);
-  const endTime = new Date(formData.operation_datetime_end);
-  
-  if (endTime <= startTime) {
-    showToast('End time must be after start time', 'danger');
-    return;
+  if (formData.operation_datetime_start && formData.operation_datetime_end) {
+    const startTime = new Date(formData.operation_datetime_start);
+    const endTime = new Date(formData.operation_datetime_end);
+    
+    if (endTime <= startTime) {
+      showToast('End time must be after start time', 'danger');
+      return;
+    }
   }
   
   // Show loading state
@@ -651,8 +701,8 @@ function saveNewOperativeNote() {
     bootstrap.Modal.getInstance(document.getElementById('newOpNoteModal')).hide();
     form.reset();
     
-    // Refresh the operative notes list
-    loadOperativeNotes();
+    // Redirect to editor for the new note
+    window.location.href = `/editor/${data.id}/`;
   })
   .catch(error => {
     // Error handling
@@ -717,28 +767,51 @@ function exportPDF(noteId) {
 }
 
 function editNote(noteId) {
-  // Redirect to edit page or open edit modal
-  window.location.href = `/opnote/${noteId}/edit`;
+  // Redirect to editor page
+  window.location.href = `/editor/${noteId}/`;
 }
 
 function deleteNote(noteId) {
-  if (!confirm('Are you sure you want to delete this operative note? This action cannot be undone.')) {
-    return;
-  }
+  // Find the note to get its title
+  const noteTitle = document.querySelector(`[onclick="editNote('${noteId}')"]`)
+    ?.closest('.list-group-item')
+    ?.querySelector('h6')?.textContent || 'Unknown Note';
   
-  fetch(`/api/v1/opnote/${noteId}`, {
-    method: 'DELETE',
-    credentials: 'include'
-  })
-  .then(response => {
-    if (!response.ok) throw new Error('Delete failed');
-    showToast('Operative note deleted successfully!', 'success');
-    refreshOperativeNotes();
-  })
-  .catch(error => {
-    console.error('Error deleting note:', error);
-    showToast('Failed to delete operative note', 'danger');
-  });
+  // Set the note title in the modal
+  document.getElementById('deleteNoteTitle').textContent = noteTitle;
+  
+  // Show the modal
+  const deleteModal = new bootstrap.Modal(document.getElementById('deleteNoteModal'));
+  deleteModal.show();
+  
+  // Set up the confirm delete button
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+  confirmBtn.onclick = function() {
+    // Show loading state
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Deleting...';
+    confirmBtn.disabled = true;
+    
+    fetch(`/api/v1/opnote/${noteId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Delete failed');
+      showToast('Operative note deleted successfully!', 'success');
+      deleteModal.hide();
+      refreshOperativeNotes();
+    })
+    .catch(error => {
+      console.error('Error deleting note:', error);
+      showToast('Failed to delete operative note', 'danger');
+    })
+    .finally(() => {
+      // Reset button state
+      confirmBtn.innerHTML = originalText;
+      confirmBtn.disabled = false;
+    });
+  };
 }
 </script>
 {% endblock %}

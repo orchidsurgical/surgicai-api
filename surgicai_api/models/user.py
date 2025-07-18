@@ -1,5 +1,6 @@
 from enum import Enum
 
+import pytz
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import String
@@ -26,6 +27,8 @@ class User(BaseModel):
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     user_type = Column(SqlEnum(UserType), nullable=False, default=UserType.SURGEON)
+    timezone = Column(String(64), nullable=True, default=None)
+    last_login = Column(DateTime, nullable=True)
 
     op_notes = relationship("OpNote", back_populates="owner", lazy="dynamic")
 
@@ -38,3 +41,8 @@ class User(BaseModel):
         parts = [self.prefix, self.first_name, self.last_name]
         parts = filter(None, parts)  # Remove any None values
         return " ".join(parts)
+
+    @property
+    def tz(self):
+        """Return the timezone of the user as a tzinfo object, or None if not set/invalid."""
+        return pytz.timezone(self.timezone) if self.timezone else pytz.utc

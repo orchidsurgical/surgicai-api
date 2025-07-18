@@ -3,6 +3,7 @@ from flask_restful import Api
 from marshmallow import ValidationError
 
 from .opnote import OpNoteListResource, OpNoteResource
+from .user import UserListResource, UserResource
 
 
 class RestfulApi(Api):
@@ -17,3 +18,5 @@ api = RestfulApi(api_bp)
 
 api.add_resource(OpNoteListResource, "/opnote/", strict_slashes=True)
 api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=True)
+api.add_resource(UserListResource, "/users/", strict_slashes=True)
+api.add_resource(UserResource, "/users/<string:user_id>/", strict_slashes=True)

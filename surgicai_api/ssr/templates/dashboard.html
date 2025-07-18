@@ -77,9 +77,6 @@
         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newOpNoteModal">
           <i class="bi bi-plus-circle me-1"></i>New Operative Note
         </button>
-        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
-          <i class="bi bi-plus-circle me-1"></i>New Template
-        </button>
         <button class="btn btn-primary" onclick="refreshDashboard()">
           <i class="bi bi-arrow-clockwise me-1"></i>Refresh
         </button>
@@ -243,7 +240,7 @@
 <!-- Main Dashboard Content -->
 <div class="row g-4 mb-4">
   <!-- Operative Notes -->
-  <div class="col-xl-8 col-lg-7">
+  <div class="col-12">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
@@ -253,76 +250,12 @@
       <div class="card-body">
         <div class="list-group list-group-flush" id="schedule-list">
           <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-            <div class="d-flex align-items-center">
-              <div class="bg-secondary bg-opacity-10 rounded-4 p-2 me-3">
-                <i class="bi bi-file-earmark-medical text-secondary"></i> Operative Note
-              </div>
-              <div>
-                <h6 class="mb-1">Knee Replacement - John Smith</h6>
-                <p class="text-muted mb-0">
-                  <i class="bi bi-person me-1"></i>John Smith • 
-                  <i class="bi bi-clock me-1"></i>9:00 AM - 11:30 AM • 
-                  <i class="bi bi-geo-alt me-1"></i>Mount Sanai Ortho, OR 3
-                </p>
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="status-badge status-inactive">
-                <i class="bi bi-file-break"></i>
-                Draft
-              </span>
-              <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-three-dots"></i>
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf me-2"></i>Export PDF</a></li>
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-file-arrow-up me-2"></i>Submit</a></li>
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
         
         <div class="text-center mt-3">
           <a href="#" class="btn btn-outline-primary">
             <i class="bi bi-arrow-clockwise me-1"></i>Load More Operative Notes
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- My Templates -->
-  <div class="col-xl-4 col-lg-5">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-          <i class="bi bi-file-earmark-text me-2"></i>My Templates
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="list-group list-group-flush" id="template-list">
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-            <div class="d-flex align-items-center">
-              <div class="bg-secondary bg-opacity-10 rounded-4 p-2 me-3">
-                <i class="bi bi-file-earmark-text text-secondary"></i> Template
-              </div>
-              <div>
-                <h6 class="mb-1">Knee Replacement Template</h6>
-                <p class="text-muted mb-0">
-                  <i class="bi bi-person me-1"></i>Dr. Jane Doe • 
-                  <i class="bi bi-clock me-1"></i>Last updated: 2 days ago
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="text-center mt-3">
-          <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
-            <i class="bi bi-plus-circle me-1"></i>New Template
           </a>
         </div>
       </div>
@@ -360,32 +293,9 @@
               <label for="endDateTime" class="form-label">End Date & Time</label>
               <input type="datetime-local" class="form-control" id="endDateTime" required>
             </div>
-            <div class="col-md-6">
-              <label for="template" class="form-label">Procedure Template</label>
-              <select class="form-select" id="template" required>
-                <option value="">Select Template</option>
-                <option value="knee-replacement">Knee Replacement</option>
-                <option value="hip-replacement">Hip Replacement</option>
-                <option value="arthroscopy">Arthroscopy</option>
-                <option value="spine-surgery">Spine Surgery</option>
-                <option value="shoulder-surgery">Shoulder Surgery</option>
-                <option value="general-surgery">General Surgery</option>
-                <option value="custom">Custom Template</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label for="location" class="form-label">Location</label>
-              <select class="form-select" id="location" required>
-                <option value="">Select Location</option>
-                <option value="or1">Operating Room 1</option>
-                <option value="or2">Operating Room 2</option>
-                <option value="or3">Operating Room 3</option>
-                <option value="or4">Operating Room 4</option>
-                <option value="or5">Operating Room 5</option>
-                <option value="ambulatory">Ambulatory Surgery Center</option>
-                <option value="clinic">Clinic</option>
-                <option value="emergency">Emergency Department</option>
-              </select>
+            <div class="col-12">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" id="title" required placeholder="Enter operative note title">
             </div>
             <div class="col-12">
               <label for="notes" class="form-label">Additional Notes (Optional)</label>
@@ -398,69 +308,6 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" onclick="saveNewOperativeNote()">
           <i class="bi bi-save me-1"></i>Create Operative Note
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- New Template Modal -->
-<div class="modal fade" id="newTemplateModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-person-plus me-2"></i>Add New Patient
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="newPatientForm">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="firstName" class="form-label">First Name</label>
-              <input type="text" class="form-control" id="firstName" required>
-            </div>
-            <div class="col-md-6">
-              <label for="lastName" class="form-label">Last Name</label>
-              <input type="text" class="form-control" id="lastName" required>
-            </div>
-            <div class="col-md-6">
-              <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email">
-            </div>
-            <div class="col-md-6">
-              <label for="phone" class="form-label">Phone</label>
-              <input type="tel" class="form-control" id="phone">
-            </div>
-            <div class="col-md-6">
-              <label for="dateOfBirth" class="form-label">Date of Birth</label>
-              <input type="date" class="form-control" id="dateOfBirth">
-            </div>
-            <div class="col-md-6">
-              <label for="gender" class="form-label">Gender</label>
-              <select class="form-select" id="gender">
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label for="address" class="form-label">Address</label>
-              <textarea class="form-control" id="address" rows="3"></textarea>
-            </div>
-            <div class="col-12">
-              <label for="medicalHistory" class="form-label">Medical History</label>
-              <textarea class="form-control" id="medicalHistory" rows="3"></textarea>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="saveNewPatient()">
-          <i class="bi bi-save me-1"></i>Save Patient
         </button>
       </div>
     </div>
@@ -520,6 +367,9 @@ document.addEventListener('DOMContentLoaded', function() {
   updateDateTime();
   setInterval(updateDateTime, 1000);
   
+  // Load operative notes on page load
+  loadOperativeNotes();
+  
   // Initialize charts if Chart.js is available
   if (typeof Chart !== 'undefined') {
     initializeCharts();
@@ -547,29 +397,174 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Update date and time display
+// Update current date and time display
 function updateDateTime() {
   const now = new Date();
-  const dateOptions = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  };
-  const timeOptions = { 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    second: '2-digit' 
-  };
   
-  document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
-  document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+  // Format date
+  const dateOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  };
+  const dateStr = now.toLocaleDateString('en-US', dateOptions);
   
-  // Update widget time
-  const widgetTime = document.getElementById('current-time-widget');
-  if (widgetTime) {
-    widgetTime.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  // Format time
+  const timeOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  };
+  const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+  
+  // Update DOM elements
+  const dateElement = document.getElementById('current-date');
+  const timeElement = document.getElementById('current-time');
+  
+  if (dateElement) {
+    dateElement.textContent = dateStr;
   }
+  
+  if (timeElement) {
+    timeElement.textContent = timeStr;
+  }
+}
+
+// Load operative notes from API
+function loadOperativeNotes() {
+  const scheduleList = document.getElementById('schedule-list');
+  
+  // Show loading state
+  scheduleList.innerHTML = `
+    <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2 mb-0">Loading operative notes...</p>
+      </div>
+    </div>
+  `;
+  
+  fetch('/api/v1/opnote/', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    updateOperativeNotesList(data);
+  })
+  .catch(error => {
+    console.error('Error loading operative notes:', error);
+    scheduleList.innerHTML = `
+      <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
+        <div class="text-center text-danger">
+          <i class="bi bi-exclamation-triangle fs-1 mb-2"></i>
+          <p class="mb-2">Failed to load operative notes</p>
+          <button class="btn btn-outline-primary btn-sm" onclick="loadOperativeNotes()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Try Again
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Function to update the operative notes list in the UI
+function updateOperativeNotesList(notes) {
+  const scheduleList = document.getElementById('schedule-list');
+  if (!scheduleList) return;
+  
+  scheduleList.innerHTML = '';
+  
+  if (!notes || notes.length === 0) {
+    scheduleList.innerHTML = `
+      <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
+        <div class="text-center text-muted">
+          <i class="bi bi-file-earmark-medical fs-1 mb-2"></i>
+          <p class="mb-2">No operative notes yet</p>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOpNoteModal">
+            <i class="bi bi-plus-circle me-1"></i>Create your first operative note
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  notes.forEach(note => {
+    const patientName = `${note.patient_first_name || ''} ${note.patient_last_name || ''}`.trim() || 'Unknown Patient';
+    
+    // Format dates
+    let startTime = 'Not scheduled';
+    let endTime = '';
+    let timeRange = 'Not scheduled';
+    
+    if (note.operation_datetime_start) {
+      const start = new Date(note.operation_datetime_start);
+      startTime = start.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      if (note.operation_datetime_end) {
+        const end = new Date(note.operation_datetime_end);
+        endTime = end.toLocaleString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        timeRange = `${startTime} - ${endTime}`;
+      } else {
+        timeRange = startTime;
+      }
+    }
+    
+    // Create note item
+    const noteItem = document.createElement('div');
+    noteItem.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
+    noteItem.innerHTML = `
+      <div class="d-flex align-items-center">
+        <div class="bg-secondary bg-opacity-10 rounded-4 p-2 me-3">
+          <i class="bi bi-file-earmark-medical text-secondary"></i> Operative Note
+        </div>
+        <div>
+          <h6 class="mb-1">${escapeHtml(note.title)}</h6>
+          <p class="text-muted mb-0">
+            <i class="bi bi-person me-1"></i>${escapeHtml(patientName)} • 
+            <i class="bi bi-clock me-1"></i>${timeRange}
+          </p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="editNote('${note.id}')"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="deleteNote('${note.id}')"><i class="bi bi-trash me-2"></i>Delete</a></li>
+          </ul>
+        </div>
+      </div>
+    `;
+    
+    scheduleList.appendChild(noteItem);
+  });
+}
+
+// Function to refresh operative notes list
+function refreshOperativeNotes() {
+  loadOperativeNotes();
 }
 
 // Refresh dashboard data
@@ -580,166 +575,170 @@ function refreshDashboard() {
   refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1 spinner-border spinner-border-sm"></i>Refreshing...';
   refreshBtn.disabled = true;
   
-  // Simulate API call
+  // Reload operative notes
+  loadOperativeNotes();
+  
+  // Simulate other data refresh
   setTimeout(() => {
     refreshBtn.innerHTML = originalText;
     refreshBtn.disabled = false;
     
     // Show success message
     showToast('Dashboard refreshed successfully!', 'success');
-  }, 1500);
+  }, 1000);
 }
 
-// Show schedule for different time periods
-function showSchedule(period) {
-  // Update button states
-  document.querySelectorAll('button[onclick^="showSchedule"]').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  // In a real app, this would fetch data from API
-  console.log(`Loading schedule for: ${period}`);
+// Utility function to escape HTML
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-// Show activity for different time periods
-function showActivity(period) {
-  // Update button states
-  document.querySelectorAll('button[onclick^="showActivity"]').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  // In a real app, this would fetch data from API
-  console.log(`Loading activity for: ${period}`);
-}
-
-// Save new operative note
+// Save new operative note (updated to refresh list after creation)
 function saveNewOperativeNote() {
   const form = document.getElementById('newOpNoteForm');
-  if (form.checkValidity()) {
-    // Get form data
-    const formData = {
-      patientFirstName: document.getElementById('patientFirstName').value,
-      patientLastName: document.getElementById('patientLastName').value,
-      startDateTime: document.getElementById('startDateTime').value,
-      endDateTime: document.getElementById('endDateTime').value,
-      template: document.getElementById('template').value,
-      location: document.getElementById('location').value,
-      notes: document.getElementById('notes').value
-    };
-    
-    // Validate end time is after start time
-    const startTime = new Date(formData.startDateTime);
-    const endTime = new Date(formData.endDateTime);
-    
-    if (endTime <= startTime) {
-      showToast('End time must be after start time', 'danger');
-      return;
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  // Get form data
+  const formData = {
+    patient_first_name: document.getElementById('patientFirstName').value,
+    patient_last_name: document.getElementById('patientLastName').value,
+    operation_datetime_start: document.getElementById('startDateTime').value,
+    operation_datetime_end: document.getElementById('endDateTime').value,
+    title: document.getElementById('title').value,
+    text: document.getElementById('notes').value || null,
+    status: 'draft'
+  };
+  
+  // Validate end time is after start time
+  const startTime = new Date(formData.operation_datetime_start);
+  const endTime = new Date(formData.operation_datetime_end);
+  
+  if (endTime <= startTime) {
+    showToast('End time must be after start time', 'danger');
+    return;
+  }
+  
+  // Show loading state
+  const saveBtn = document.querySelector('button[onclick="saveNewOperativeNote()"]');
+  const originalText = saveBtn.innerHTML;
+  saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+  saveBtn.disabled = true;
+  
+  // Make AJAX request with cookies
+  fetch('/api/v1/opnote/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include', // Include cookies in the request
+    body: JSON.stringify(formData)
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => Promise.reject(err));
     }
-    
-    // Simulate API call
-    console.log('Creating operative note:', formData);
+    return response.json();
+  })
+  .then(data => {
+    // Success
+    console.log('Operative note created:', data);
     showToast('Operative note created successfully!', 'success');
     bootstrap.Modal.getInstance(document.getElementById('newOpNoteModal')).hide();
     form.reset();
     
-    // In a real app, you would refresh the operative notes list here
-    // refreshOperativeNotes();
-  } else {
-    form.reportValidity();
-  }
+    // Refresh the operative notes list
+    loadOperativeNotes();
+  })
+  .catch(error => {
+    // Error handling
+    console.error('Error creating operative note:', error);
+    
+    if (error.errors) {
+      // Marshmallow validation errors
+      const errorMessages = Object.entries(error.errors)
+        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+        .join('; ');
+      showToast(`Validation error: ${errorMessages}`, 'danger');
+    } else if (error.message) {
+      showToast(`Error: ${error.message}`, 'danger');
+    } else {
+      showToast('Failed to create operative note. Please try again.', 'danger');
+    }
+  })
+  .finally(() => {
+    // Reset button state
+    saveBtn.innerHTML = originalText;
+    saveBtn.disabled = false;
+  });
 }
 
-// Save new patient
-function saveNewPatient() {
-  const form = document.getElementById('newPatientForm');
-  if (form.checkValidity()) {
-    // Simulate API call
-    showToast('New patient saved successfully!', 'success');
-    bootstrap.Modal.getInstance(document.getElementById('newPatientModal')).hide();
-    form.reset();
-  } else {
-    form.reportValidity();
-  }
+// Function to refresh operative notes list
+function refreshOperativeNotes() {
+  fetch('/api/v1/opnote/', {
+    credentials: 'include' // Include cookies in the request
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Update the operative notes list in the UI
+    updateOperativeNotesList(data);
+  })
+  .catch(error => {
+    console.error('Error refreshing operative notes:', error);
+  });
 }
 
-// Save procedure
-function saveProcedure() {
-  const form = document.getElementById('scheduleForm');
-  if (form.checkValidity()) {
-    // Simulate API call
-    showToast('Procedure scheduled successfully!', 'success');
-    bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
-    form.reset();
-  } else {
-    form.reportValidity();
-  }
+// Add helper functions for other operations that will need cookie authentication
+function exportPDF(noteId) {
+  fetch(`/api/v1/opnote/${noteId}/export`, {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Export failed');
+    return response.blob();
+  })
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `operative-note-${noteId}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  })
+  .catch(error => {
+    console.error('Error exporting PDF:', error);
+    showToast('Failed to export PDF', 'danger');
+  });
 }
 
-// Initialize charts (requires Chart.js)
-function initializeCharts() {
-  // Monthly Statistics Chart
-  const monthlyCtx = document.getElementById('monthlyChart');
-  if (monthlyCtx) {
-    new Chart(monthlyCtx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Procedures',
-          data: [65, 78, 90, 81, 89, 105],
-          borderColor: 'var(--primary-color)',
-          backgroundColor: 'rgba(0, 102, 204, 0.1)',
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
+function editNote(noteId) {
+  // Redirect to edit page or open edit modal
+  window.location.href = `/opnote/${noteId}/edit`;
+}
+
+function deleteNote(noteId) {
+  if (!confirm('Are you sure you want to delete this operative note? This action cannot be undone.')) {
+    return;
   }
   
-  // Procedure Distribution Chart
-  const procedureCtx = document.getElementById('procedureChart');
-  if (procedureCtx) {
-    new Chart(procedureCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Knee Replacement', 'Hip Replacement', 'Consultations', 'Follow-ups', 'Other'],
-        datasets: [{
-          data: [30, 25, 20, 15, 10],
-          backgroundColor: [
-            'var(--primary-color)',
-            'var(--success-color)',
-            'var(--info-color)',
-            'var(--warning-color)',
-            'var(--danger-color)'
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }
-    });
-  }
+  fetch(`/api/v1/opnote/${noteId}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Delete failed');
+    showToast('Operative note deleted successfully!', 'success');
+    refreshOperativeNotes();
+  })
+  .catch(error => {
+    console.error('Error deleting note:', error);
+    showToast('Failed to delete operative note', 'danger');
+  });
 }
 </script>
 {% endblock %}

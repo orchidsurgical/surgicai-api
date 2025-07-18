@@ -36,11 +36,11 @@
         <div class="card-body">
           <p class="text-muted mb-3">Manage users, roles, and permissions</p>
           <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-primary" onclick="showToast('User management coming soon!', 'info')">
-              <i class="bi bi-person-plus me-1"></i>Add User
-            </button>
-            <button class="btn btn-outline-primary" onclick="showToast('User list coming soon!', 'info')">
-              <i class="bi bi-people me-1"></i>View All Users
+            <a href="{{ url_for('ssr.admin.admin_users') }}" class="btn btn-primary">
+              <i class="bi bi-people me-1"></i>Manage Users
+            </a>
+            <button class="btn btn-outline-primary" onclick="showToast('User reports coming soon!', 'info')">
+              <i class="bi bi-graph-up me-1"></i>User Reports
             </button>
           </div>
         </div>

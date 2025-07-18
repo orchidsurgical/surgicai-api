@@ -9,3 +9,9 @@ admin_bp = Blueprint("admin", __name__)
 @check_jwt(require_admin=True)
 def admin():
     return render_template("admin.html", user=g.user)
+
+
+@admin_bp.route("/admin/users", methods=["GET"])
+@check_jwt(require_admin=True)
+def admin_users():
+    return render_template("admin_users.html", user=g.user)

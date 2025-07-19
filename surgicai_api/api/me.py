@@ -22,6 +22,7 @@ class MeUserSchema(Schema):
     timezone = fields.Str(
         allow_none=True, validate=validate_timezone, load_default=None
     )
+    password = fields.Str(load_only=True, required=False)
 
 
 schema = MeUserSchema()

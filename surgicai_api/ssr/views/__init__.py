@@ -22,7 +22,7 @@ def check_jwt(view_method=None, require_admin=False):
             if not jwttoken or not (payload := decode_jwt_token(jwttoken)):
                 return redirect(url_for("ssr.login.login", next=request.path))
             user_id = payload.get("user_id")
-            session = app.SessionLocal()
+            session = g.db
             user = session.query(User).filter_by(id=user_id).first()
             if not user:
                 flash("User not found", "danger")

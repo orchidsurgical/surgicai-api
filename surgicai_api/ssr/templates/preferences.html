@@ -35,6 +35,9 @@
             <div class="mb-3">
               <label for="password" class="form-label">New Password <span class="text-muted">(leave blank to keep current)</span></label>
               <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+              <div class="form-text">
+                Password must contain: at least 8 characters, 1 lowercase, 1 uppercase, and 1 special character (!@#$%^&*)
+              </div>
             </div>
             <div class="mb-3">
               <label for="confirmPassword" class="form-label">Confirm New Password</label>
@@ -99,17 +102,51 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('preferencesForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;
+    
+    // Validate password confirmation
+    const password = form.password.value;
+    const confirmPassword = form.confirm_password.value;
+    
+    if (password && password !== confirmPassword) {
+      showToast('Passwords do not match', 'danger');
+      return;
+    }
+    
+    // Validate password strength if password is provided
+    if (password) {
+      const passwordErrors = [];
+      
+      if (password.length < 8) {
+        passwordErrors.push('at least 8 characters');
+      }
+      if (!/[a-z]/.test(password)) {
+        passwordErrors.push('at least 1 lowercase letter');
+      }
+      if (!/[A-Z]/.test(password)) {
+        passwordErrors.push('at least 1 uppercase letter');
+      }
+      if (!/[!@#$%^&*]/.test(password)) {
+        passwordErrors.push('at least 1 special character (!@#$%^&*)');
+      }
+      
+      if (passwordErrors.length > 0) {
+        showToast(`Password must contain: ${passwordErrors.join(', ')}`, 'danger');
+        return;
+      }
+    }
+    
     const data = {
       first_name: form.first_name.value,
       last_name: form.last_name.value,
       email: form.email.value,
-      timezone: form.timezone.value,
-      password: form.password.value,
-      confirm_password: form.confirm_password.value
+      timezone: form.timezone.value
     };
-    // Remove password fields if blank
-    if (!data.password) delete data.password;
-    if (!data.confirm_password) delete data.confirm_password;
+    
+    // Only include password if provided
+    if (password) {
+      data.password = password;
+    }
+    
     fetch('/api/v1/me/', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -122,6 +159,9 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(() => {
       showToast('Preferences updated!', 'success');
+      // Clear password fields after successful update
+      form.password.value = '';
+      form.confirm_password.value = '';
     })
     .catch(err => {
       showToast(err.message || 'Error updating preferences', 'danger');

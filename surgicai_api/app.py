@@ -32,6 +32,15 @@ def register_extensions(app: Flask):
 register_extensions(app)
 
 
+@app.context_processor
+def inject_user():
+    """Make user and hijacker information available in templates."""
+    return {
+        "user": getattr(g, "user", None),
+        "hijacker_id": getattr(g, "hijacker_id", None),
+    }
+
+
 @app.before_request
 def create_session():
     g.db = SessionLocal()

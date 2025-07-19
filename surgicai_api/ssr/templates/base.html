@@ -230,6 +230,35 @@
             {% endif %}
           {% endif %}
         </ul>
+        
+        <!-- Hijack Indicator -->
+        {% if hijacker_id %}
+        <div class="d-flex align-items-center me-3">
+          <span class="badge text-white d-flex align-items-center" style="
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          ">
+            <i class="bi bi-person-fill-exclamation me-1"></i>
+            SIMULATED SESSION!
+          </span>
+          <button class="btn btn-sm btn-outline-warning ms-2 d-flex align-items-center" onclick="releaseHijack()" style="
+            border-color: #ffc107;
+            color: #ffc107;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-weight: 500;
+          ">
+            <i class="bi bi-x-lg me-1"></i>
+            Exit
+          </button>
+        </div>
+        {% endif %}
+        
         <ul class="navbar-nav ms-auto">
           {% if user %}
             <li class="nav-item dropdown">
@@ -259,7 +288,7 @@
     </div>
   </nav>
 
-  <div class="container-fluid mt-5 pt-4">
+  <div class="container-fluid" style="margin-top: 5rem; padding-top: 1rem;">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="row">
@@ -332,6 +361,28 @@
         console.error('Toast error:', error);
         // Ultimate fallback
         alert(message);
+      }
+    }
+    
+    // Release hijack function
+    async function releaseHijack() {
+      try {
+        const response = await fetch('/api/v1/admin/hijack/', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          // Redirect to admin page after successful release
+          window.location.href = '/admin';
+        } else {
+          const error = await response.json();
+          showToast('Error releasing hijack: ' + error.message, 'danger');
+        }
+      } catch (error) {
+        showToast('Error releasing hijack: ' + error.message, 'danger');
       }
     }
     

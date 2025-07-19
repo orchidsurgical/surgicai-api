@@ -8,12 +8,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from surgicai_api.models.user import User
 
 
-def generate_jwt_token(user):
+def generate_jwt_token(user, hijacker_id=None):
     """
     Generate a JWT token for a user.
 
     Args:
         user (User): The user object for which to generate the token.
+        hijacker_id (str, optional): ID of the admin user hijacking this session.
     Returns:
         str: The encoded JWT token.
     """
@@ -24,6 +25,10 @@ def generate_jwt_token(user):
         "exp": datetime.datetime.now(tz=datetime.timezone.utc)
         + datetime.timedelta(seconds=app.config["JWT_EXP_DELTA_SECONDS"]),
     }
+
+    if hijacker_id:
+        payload["hijacker_id"] = str(hijacker_id)
+
     return jwt.encode(
         payload, app.config["SECRET_KEY"], algorithm=app.config["JWT_ALGORITHM"]
     )

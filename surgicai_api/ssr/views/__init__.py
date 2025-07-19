@@ -29,6 +29,7 @@ def check_jwt(view_method=None, require_admin=False):
                 return redirect(url_for("ssr.login.logout"))
 
             g.user = user
+            g.hijacker_id = payload.get("hijacker_id")
 
             if require_admin and user.user_type != UserType.ADMIN:
                 flash("Access denied.", "danger")

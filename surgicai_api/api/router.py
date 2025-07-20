@@ -9,6 +9,7 @@ from surgicai_api.api.fields import StrictUUID
 from surgicai_api.api.login import LoginResource, LogoutResource
 from surgicai_api.api.me import MeResource
 from surgicai_api.api.opnote import OpNoteListResource, OpNoteResource
+from surgicai_api.api.template import TemplateListResource, TemplateResource
 
 
 class RestfulApi(Api):
@@ -28,11 +29,15 @@ class RestfulApi(Api):
 api_bp = Blueprint("api", __name__)
 api = RestfulApi(api_bp)
 
-api.add_resource(OpNoteListResource, "/opnote/", strict_slashes=True)
-api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=True)
-api.add_resource(MeResource, "/me/", strict_slashes=True)
 api.add_resource(LoginResource, "/login/", strict_slashes=True)
 api.add_resource(LogoutResource, "/logout/", strict_slashes=True)
+api.add_resource(MeResource, "/me/", strict_slashes=True)
+api.add_resource(OpNoteListResource, "/opnote/", strict_slashes=True)
+api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=True)
+api.add_resource(TemplateListResource, "/template/", strict_slashes=True)
+api.add_resource(
+    TemplateResource, "/template/<string:template_id>/", strict_slashes=True
+)
 
 # Admin resources
 api.add_resource(UserListResource, "/admin/users/", strict_slashes=True)

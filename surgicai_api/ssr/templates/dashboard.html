@@ -57,6 +57,24 @@
     background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
     color: white;
   }
+  
+  .opnote-item {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .opnote-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--primary-color);
+  }
+  
+  .loading-spinner {
+    padding: 2rem;
+  }
 </style>
 {% endblock %}
 
@@ -85,180 +103,70 @@
   </div>
 </div>
 
-<!-- Key Metrics Row -->
-<!-- <div class="row g-4 mb-4">
-  <div class="col-lg-3 col-md-6">
-    <div class="card h-100 metric-card">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="flex-shrink-0">
-            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-              <i class="bi bi-person-hearts text-primary fs-4"></i>
-            </div>
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <h6 class="card-title text-muted mb-1">Total Patients</h6>
-            <h3 class="mb-0">1,247</h3>
-            <small class="text-success">
-              <i class="bi bi-arrow-up"></i> 5.2% from last month
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-lg-3 col-md-6">
-    <div class="card h-100 metric-card">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="flex-shrink-0">
-            <div class="bg-success bg-opacity-10 rounded-circle p-3">
-              <i class="bi bi-clipboard2-pulse text-success fs-4"></i>
-            </div>
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <h6 class="card-title text-muted mb-1">Procedures This Month</h6>
-            <h3 class="mb-0">89</h3>
-            <small class="text-success">
-              <i class="bi bi-arrow-up"></i> 12.5% from last month
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-lg-3 col-md-6">
-    <div class="card h-100 metric-card">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="flex-shrink-0">
-            <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-              <i class="bi bi-calendar-event text-warning fs-4"></i>
-            </div>
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <h6 class="card-title text-muted mb-1">Today's Appointments</h6>
-            <h3 class="mb-0">12</h3>
-            <small class="text-info">
-              <i class="bi bi-clock"></i> 3 remaining
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="col-lg-3 col-md-6">
-    <div class="card h-100 metric-card">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="flex-shrink-0">
-            <div class="bg-info bg-opacity-10 rounded-circle p-3">
-              <i class="bi bi-graph-up text-info fs-4"></i>
-            </div>
-          </div>
-          <div class="flex-grow-1 ms-3">
-            <h6 class="card-title text-muted mb-1">Success Rate</h6>
-            <h3 class="mb-0">98.2%</h3>
-            <small class="text-success">
-              <i class="bi bi-arrow-up"></i> 0.3% from last month
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div> -->
-
-<!-- Quick Actions Row -->
-<!-- <div class="row g-4 mb-4">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">
-          <i class="bi bi-lightning me-2"></i>Quick Actions
-        </h5>
-      </div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-person-plus text-primary fs-3 mb-2"></i>
-                <h6 class="card-title">Add Patient</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-calendar-plus text-success fs-3 mb-2"></i>
-                <h6 class="card-title">Schedule</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-file-earmark-medical text-info fs-3 mb-2"></i>
-                <h6 class="card-title">View Records</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-graph-up text-warning fs-3 mb-2"></i>
-                <h6 class="card-title">Reports</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-gear text-secondary fs-3 mb-2"></i>
-                <h6 class="card-title">Settings</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="card quick-action-card text-center h-100">
-              <div class="card-body">
-                <i class="bi bi-question-circle text-dark fs-3 mb-2"></i>
-                <h6 class="card-title">Help</h6>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div> -->
-
 <!-- Main Dashboard Content -->
 <div class="row g-4 mb-4">
-  <!-- Operative Notes -->
+  <!-- Search and Filter Section -->
   <div class="col-12">
-    <div class="card h-100">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by title or patient name..." onkeyup="filterOpNotes()">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" id="sort-opnotes" onchange="sortOpNotes()">
+              <option value="operation_datetime_start">Sort by Date</option>
+              <option value="title">Sort by Title</option>
+              <option value="patient_name">Sort by Patient</option>
+              <option value="created_at">Sort by Created</option>
+              <option value="updated_at">Sort by Updated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Spinner -->
+  <div class="col-12">
+    <div class="loading-spinner text-center" id="opnotes-loading-spinner" style="display: none;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading operative notes...</p>
+    </div>
+  </div>
+  
+  <!-- Operative Notes -->
+  <div class="col-12" id="opnotes-row">
+    <div class="card h-100" id="opnotes-card" style="display: none;">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
           <i class="bi bi-file-earmark-medical me-2"></i>My Operative Notes
         </h5>
       </div>
-      <div class="card-body">
-        <div class="list-group list-group-flush" id="schedule-list">
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-          </div>
+      <div class="card-body p-0">
+        <div id="schedule-list">
+          <!-- Operative notes will be loaded here -->
         </div>
-        
-        <!-- <div class="text-center mt-3">
-          <a href="#" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-clockwise me-1"></i>Load More Operative Notes
-          </a>
-        </div> -->
       </div>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div class="col-12" id="empty-opnotes-row">
+    <div class="text-center py-5 d-none" id="empty-opnotes-state">
+      <i class="bi bi-file-earmark-medical" style="font-size: 3rem; color: #dee2e6;"></i>
+      <h3>No operative notes yet</h3>
+      <p>Create your first operative note to get started.</p>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOpNoteModal">
+        <i class="bi bi-plus-circle me-1"></i>Create your first operative note
+      </button>
     </div>
   </div>
 </div>
@@ -388,6 +296,10 @@
 
 {% block scripts %}
 <script>
+// Global variables for operative notes
+let allOpNotes = [];
+let filteredOpNotes = [];
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
   updateDateTime();
@@ -476,19 +388,7 @@ function updateDateTime() {
 
 // Load operative notes from API
 function loadOperativeNotes() {
-  const scheduleList = document.getElementById('schedule-list');
-  
-  // Show loading state
-  scheduleList.innerHTML = `
-    <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
-      <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="text-muted mt-2 mb-0">Loading operative notes...</p>
-      </div>
-    </div>
-  `;
+  showOpNotesLoading(true);
   
   fetch('/api/v1/opnote/', {
     method: 'GET',
@@ -501,59 +401,137 @@ function loadOperativeNotes() {
     return response.json();
   })
   .then(data => {
-    updateOperativeNotesList(data);
+    allOpNotes = data;
+    filteredOpNotes = [...allOpNotes];
+    updateOperativeNotesList();
+    showOpNotesLoading(false);
   })
   .catch(error => {
     console.error('Error loading operative notes:', error);
-    scheduleList.innerHTML = `
-      <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
-        <div class="text-center text-danger">
-          <i class="bi bi-exclamation-triangle fs-1 mb-2"></i>
-          <p class="mb-2">Failed to load operative notes</p>
-          <button class="btn btn-outline-primary btn-sm" onclick="loadOperativeNotes()">
-            <i class="bi bi-arrow-clockwise me-1"></i>Try Again
-          </button>
-        </div>
-      </div>
-    `;
+    showOpNotesError();
+    showOpNotesLoading(false);
   });
 }
 
-// Function to update the operative notes list in the UI
-function updateOperativeNotesList(notes) {
+// Show/hide loading state for operative notes
+function showOpNotesLoading(show) {
+  const spinner = document.getElementById('opnotes-loading-spinner');
+  const opnotesRow = document.getElementById('opnotes-row');
+  const emptyRow = document.getElementById('empty-opnotes-row');
+  
+  if (show) {
+    spinner.style.display = 'block';
+    opnotesRow.style.display = 'none';
+    emptyRow.style.display = 'none';
+  } else {
+    spinner.style.display = 'none';
+    opnotesRow.style.display = 'block';
+    emptyRow.style.display = 'block';
+  }
+}
+
+// Show error state for operative notes
+function showOpNotesError() {
   const scheduleList = document.getElementById('schedule-list');
+  const opnotesCard = document.getElementById('opnotes-card');
+  const emptyState = document.getElementById('empty-opnotes-state');
+  
+  opnotesCard.style.display = 'block';
+  emptyState.classList.add('d-none');
+  
+  scheduleList.innerHTML = `
+    <div class="text-center text-danger p-4">
+      <i class="bi bi-exclamation-triangle fs-1 mb-2"></i>
+      <p class="mb-2">Failed to load operative notes</p>
+      <button class="btn btn-outline-primary btn-sm" onclick="loadOperativeNotes()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Try Again
+      </button>
+    </div>
+  `;
+}
+
+// Filter operative notes based on search input
+function filterOpNotes() {
+  const searchTerm = document.getElementById('search-opnotes').value.toLowerCase();
+  
+  if (!searchTerm) {
+    filteredOpNotes = [...allOpNotes];
+  } else {
+    filteredOpNotes = allOpNotes.filter(note => {
+      const title = note.title?.toLowerCase() || '';
+      const patientName = `${note.patient_first_name || ''} ${note.patient_last_name || ''}`.toLowerCase();
+      return title.includes(searchTerm) || patientName.includes(searchTerm);
+    });
+  }
+  
+  updateOperativeNotesList();
+}
+
+// Sort operative notes
+function sortOpNotes() {
+  const sortBy = document.getElementById('sort-opnotes').value;
+  
+  filteredOpNotes.sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortBy) {
+      case 'patient_name':
+        aValue = `${a.patient_first_name || ''} ${a.patient_last_name || ''}`.trim();
+        bValue = `${b.patient_first_name || ''} ${b.patient_last_name || ''}`.trim();
+        break;
+      case 'operation_datetime_start':
+        aValue = a.operation_datetime_start ? new Date(a.operation_datetime_start) : new Date(0);
+        bValue = b.operation_datetime_start ? new Date(b.operation_datetime_start) : new Date(0);
+        return bValue - aValue; // Most recent first
+      case 'created_at':
+      case 'updated_at':
+        aValue = new Date(a[sortBy]);
+        bValue = new Date(b[sortBy]);
+        return bValue - aValue; // Most recent first
+      default:
+        aValue = a[sortBy] || '';
+        bValue = b[sortBy] || '';
+    }
+    
+    // For strings, case-insensitive comparison
+    if (typeof aValue === 'string') {
+      return aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+    }
+    
+    return 0;
+  });
+  
+  updateOperativeNotesList();
+}
+
+// Function to update the operative notes list in the UI
+function updateOperativeNotesList() {
+  const scheduleList = document.getElementById('schedule-list');
+  const opnotesCard = document.getElementById('opnotes-card');
+  const emptyState = document.getElementById('empty-opnotes-state');
+  
   if (!scheduleList) return;
   
-  scheduleList.innerHTML = '';
-  
-  if (!notes || notes.length === 0) {
-    scheduleList.innerHTML = `
-      <div class="list-group-item d-flex justify-content-center align-items-center px-0 py-4">
-        <div class="text-center text-muted">
-          <i class="bi bi-file-earmark-medical fs-1 mb-2"></i>
-          <p class="mb-2">No operative notes yet</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOpNoteModal">
-            <i class="bi bi-plus-circle me-1"></i>Create your first operative note
-          </button>
-        </div>
-      </div>
-    `;
+  if (!filteredOpNotes || filteredOpNotes.length === 0) {
+    opnotesCard.style.display = 'none';
+    emptyState.classList.remove('d-none');
     return;
   }
   
-  notes.forEach(note => {
+  emptyState.classList.add('d-none');
+  opnotesCard.style.display = 'block';
+  
+  scheduleList.innerHTML = filteredOpNotes.map(note => {
     const patientName = note.patient_first_name && note.patient_last_name ? 
       `${note.patient_first_name} ${note.patient_last_name}` : 
       'No patient name';
     
     // Format dates
-    let startTime = 'Not scheduled';
-    let endTime = '';
     let timeRange = 'Not scheduled';
     
     if (note.operation_datetime_start) {
       const start = new Date(note.operation_datetime_start);
-      startTime = start.toLocaleString('en-US', {
+      let startTime = start.toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
@@ -562,7 +540,7 @@ function updateOperativeNotesList(notes) {
       
       if (note.operation_datetime_end) {
         const end = new Date(note.operation_datetime_end);
-        endTime = end.toLocaleString('en-US', {
+        const endTime = end.toLocaleString('en-US', {
           hour: '2-digit',
           minute: '2-digit'
         });
@@ -572,38 +550,46 @@ function updateOperativeNotesList(notes) {
       }
     }
     
-    // Create note item
-    const noteItem = document.createElement('div');
-    noteItem.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
-    noteItem.innerHTML = `
-      <div class="d-flex align-items-center">
-        <div class="bg-secondary bg-opacity-10 rounded-4 p-2 me-3">
-          <i class="bi bi-file-earmark-medical text-secondary"></i> Operative Note
-        </div>
-        <div>
-          <h6 class="mb-1">${escapeHtml(note.title)}</h6>
-          <p class="text-muted mb-0">
-            <i class="bi bi-person me-1"></i>Patient: ${escapeHtml(patientName)}
-            • <i class="bi bi-clock me-1"></i>${timeRange}
-          </p>
-        </div>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <div class="dropdown">
-          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-three-dots"></i>
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="editNote('${note.id}')"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" onclick="deleteNote('${note.id}')"><i class="bi bi-trash me-2"></i>Delete</a></li>
-          </ul>
+    return `
+      <div class="opnote-item list-group-item list-group-item-action p-4">
+        <div class="d-flex w-100 justify-content-between align-items-start">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center mb-2">
+              <h5 class="mb-0 me-3">${escapeHtml(note.title)}</h5>
+              <span class="badge bg-light text-dark">Operative Note</span>
+            </div>
+            
+            <p class="mb-2 text-muted">
+              <i class="bi bi-person me-1"></i>
+              Patient: <strong>${escapeHtml(patientName)}</strong>
+            </p>
+            
+            <div class="row text-muted small">
+              <div class="col-md-6">
+                <i class="bi bi-clock me-1"></i>
+                ${timeRange}
+              </div>
+              <div class="col-md-6">
+                <i class="bi bi-calendar-check me-1"></i>
+                Updated: ${formatDate(note.updated_at)}
+              </div>
+            </div>
+          </div>
+          
+          <div class="ms-3">
+            <div class="btn-group">
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="editNote('${note.id}')">
+                <i class="bi bi-pencil"></i> Edit
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteNote('${note.id}')">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     `;
-    
-    scheduleList.appendChild(noteItem);
-  });
+  }).join('');
   
   // Reinitialize tooltips after updating the list
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -615,6 +601,16 @@ function updateOperativeNotesList(notes) {
 // Function to refresh operative notes list
 function refreshOperativeNotes() {
   loadOperativeNotes();
+}
+
+// Utility function to format dates
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
 }
 
 // Refresh dashboard data
@@ -703,6 +699,9 @@ function saveNewOperativeNote() {
     bootstrap.Modal.getInstance(document.getElementById('newOpNoteModal')).hide();
     form.reset();
     
+    // Refresh the operative notes list
+    refreshOperativeNotes();
+    
     // Redirect to editor for the new note
     window.location.href = `/editor/${data.id}/`;
   })
@@ -726,21 +725,6 @@ function saveNewOperativeNote() {
     // Reset button state
     saveBtn.innerHTML = originalText;
     saveBtn.disabled = false;
-  });
-}
-
-// Function to refresh operative notes list
-function refreshOperativeNotes() {
-  fetch('/api/v1/opnote/', {
-    credentials: 'include' // Include cookies in the request
-  })
-  .then(response => response.json())
-  .then(data => {
-    // Update the operative notes list in the UI
-    updateOperativeNotesList(data);
-  })
-  .catch(error => {
-    console.error('Error refreshing operative notes:', error);
   });
 }
 
@@ -775,9 +759,8 @@ function editNote(noteId) {
 
 function deleteNote(noteId) {
   // Find the note to get its title
-  const noteTitle = document.querySelector(`[onclick="editNote('${noteId}')"]`)
-    ?.closest('.list-group-item')
-    ?.querySelector('h6')?.textContent || 'Unknown Note';
+  const note = filteredOpNotes.find(n => n.id === noteId);
+  const noteTitle = note ? note.title : 'Unknown Note';
   
   // Set the note title in the modal
   document.getElementById('deleteNoteTitle').textContent = noteTitle;

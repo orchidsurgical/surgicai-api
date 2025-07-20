@@ -31,6 +31,7 @@ class User(BaseModel):
     last_login = Column(DateTime, nullable=True)
 
     op_notes = relationship("OpNote", back_populates="owner", lazy="dynamic")
+    templates = relationship("Template", back_populates="owner", lazy="dynamic")
 
     def __repr__(self):
         return f"<User(email={self.email})>"

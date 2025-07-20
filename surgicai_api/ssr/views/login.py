@@ -7,6 +7,7 @@ from flask import flash, redirect, render_template, request, url_for
 from surgicai_api.models import User, UserType
 from surgicai_api.services.authentication import (
     authenticate_user_password,
+    decode_jwt_token,
     generate_jwt_token,
 )
 
@@ -22,8 +23,12 @@ REDIRECT_USER_TYPE = {
 
 @login_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if request.cookies.get("jwt"):
-        return redirect(url_for("ssr.home.home"))
+    if cookie := request.cookies.get("jwt"):
+        if decode_jwt_token(cookie):
+            # User is already logged in, redirect to home
+            if request.args.get("next"):
+                return redirect(request.args.get("next"))
+            return redirect(url_for("ssr.home.home"))
 
     session = app.SessionLocal()
 

@@ -2,6 +2,33 @@
 
 {% block title %}Preferences - OperativeAI{% endblock %}
 
+{% block head %}
+<style>
+  .danger-zone {
+    border: 2px solid #dc3545;
+    border-radius: 8px;
+  }
+  
+  .danger-zone .card-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  }
+  
+  .btn-outline-danger:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-color: #dc3545;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+  }
+  
+  .modal-header.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border-radius: 12px 12px 0 0;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
   <div class="row justify-content-center">
@@ -50,6 +77,73 @@
           </form>
         </div>
       </div>
+      
+      <!-- Danger Zone -->
+      <div class="card shadow-sm mt-4 danger-zone">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="text-danger">Delete Account</h6>
+          <p class="text-muted mb-3">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This will permanently delete:
+            <ul class="mb-0 mt-2">
+              <li>Your user account and profile</li>
+              <li>All operative notes you've created</li>
+              <li>All associated data and preferences</li>
+            </ul>
+          </div>
+          <button type="button" class="btn btn-outline-danger" onclick="showDeleteAccountModal()">
+            <i class="bi bi-trash me-2"></i>Delete My Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteAccountModalLabel">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Confirm Account Deletion
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>This action cannot be undone!</strong>
+        </div>
+        <p>You are about to permanently delete your account. This will:</p>
+        <ul>
+          <li>Remove your user account and profile</li>
+          <li>Delete all operative notes you've created</li>
+          <li>Erase all your preferences and settings</li>
+          <li>Remove all associated data from our systems</li>
+        </ul>
+        <p><strong>To confirm, please enter your email address below:</strong></p>
+        <div class="mb-3">
+          <label for="confirmEmail" class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="confirmEmail" placeholder="Enter your email to confirm">
+          <div class="invalid-feedback" id="emailMismatchError">
+            Email does not match your account email.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()" disabled>
+          <i class="bi bi-trash me-2"></i>Delete My Account
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -86,10 +180,13 @@ function populateTimezones(selectedTz) {
 }
 
 // Load current user preferences
+let currentUserEmail = '';
+
 function loadPreferences() {
   fetch('/api/v1/me/', { credentials: 'include' })
     .then(r => r.json())
     .then(data => {
+      currentUserEmail = data.email || '';
       document.getElementById('firstName').value = data.first_name || '';
       document.getElementById('lastName').value = data.last_name || '';
       document.getElementById('email').value = data.email || '';
@@ -167,6 +264,91 @@ document.addEventListener('DOMContentLoaded', function() {
       showToast(err.message || 'Error updating preferences', 'danger');
     });
   });
+  
+  // Setup email validation for delete account modal
+  const confirmEmailInput = document.getElementById('confirmEmail');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  
+  if (confirmEmailInput && confirmDeleteBtn) {
+    confirmEmailInput.addEventListener('input', function() {
+      validateEmailForDeletion();
+    });
+  }
 });
+
+// Show delete account modal
+function showDeleteAccountModal() {
+  const modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+  modal.show();
+  
+  // Reset form state
+  document.getElementById('confirmEmail').value = '';
+  document.getElementById('confirmDeleteBtn').disabled = true;
+  document.getElementById('confirmEmail').classList.remove('is-invalid');
+}
+
+// Validate email input for account deletion
+function validateEmailForDeletion() {
+  const confirmEmailInput = document.getElementById('confirmEmail');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const emailValue = confirmEmailInput.value.trim();
+  
+  if (emailValue === currentUserEmail) {
+    confirmEmailInput.classList.remove('is-invalid');
+    confirmDeleteBtn.disabled = false;
+  } else {
+    confirmEmailInput.classList.add('is-invalid');
+    confirmDeleteBtn.disabled = true;
+  }
+}
+
+// Confirm account deletion
+async function confirmDeleteAccount() {
+  const confirmEmailInput = document.getElementById('confirmEmail');
+  const emailValue = confirmEmailInput.value.trim();
+  
+  // Final validation
+  if (emailValue !== currentUserEmail) {
+    showToast('Email does not match your account email', 'danger');
+    return;
+  }
+  
+  try {
+    // Disable the button to prevent double-clicks
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    confirmDeleteBtn.disabled = true;
+    confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+    
+    const response = await fetch('/api/v1/me/', {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete account: ${response.status}`);
+    }
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal'));
+    modal.hide();
+    
+    // Show success message and redirect
+    showToast('Account deleted successfully. Redirecting...', 'success');
+    
+    // Redirect to logout after a short delay
+    setTimeout(() => {
+      window.location.href = '/logout';
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    showToast('Error deleting account: ' + error.message, 'danger');
+    
+    // Re-enable the button
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    confirmDeleteBtn.disabled = false;
+    confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-2"></i>Delete My Account';
+  }
+}
 </script>
 {% endblock %}

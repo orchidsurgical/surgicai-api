@@ -51,3 +51,14 @@ class MeResource(Resource):
 
         g.db.commit()
         return schema.dump(user), 200
+    
+    def delete(self):
+        """
+        Delete the current user's account.
+        
+        Returns a success message.
+        """
+        user = g.user
+        g.db.delete(user)
+        g.db.commit()
+        return {"message": "User account deleted successfully."}, 200

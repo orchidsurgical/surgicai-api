@@ -3,8 +3,8 @@ from flask_restful import Resource
 from marshmallow import Schema, ValidationError, fields
 from werkzeug.exceptions import Unauthorized
 
+from surgicai_api.api.admin.user import UserSchema
 from surgicai_api.api.fields import StrictUUID
-from surgicai_api.api.user import UserSchema
 from surgicai_api.models.user import User, UserType
 from surgicai_api.services.authentication import decode_jwt_token, generate_jwt_token
 from surgicai_api.ssr.views import check_jwt

@@ -3,11 +3,12 @@ from flask import Blueprint, jsonify
 from flask_restful import Api
 from marshmallow import ValidationError
 
-from .hijack import HijackResource
-from .login import LoginResource, LogoutResource
-from .me import MeResource
-from .opnote import OpNoteListResource, OpNoteResource
-from .user import UserListResource, UserResource
+from surgicai_api.api.admin.hijack import HijackResource
+from surgicai_api.api.admin.user import UserListResource, UserResource
+from surgicai_api.api.fields import StrictUUID
+from surgicai_api.api.login import LoginResource, LogoutResource
+from surgicai_api.api.me import MeResource
+from surgicai_api.api.opnote import OpNoteListResource, OpNoteResource
 
 
 class RestfulApi(Api):
@@ -29,9 +30,11 @@ api = RestfulApi(api_bp)
 
 api.add_resource(OpNoteListResource, "/opnote/", strict_slashes=True)
 api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=True)
-api.add_resource(UserListResource, "/admin/users/", strict_slashes=True)
-api.add_resource(UserResource, "/admin/users/<string:user_id>/", strict_slashes=True)
 api.add_resource(MeResource, "/me/", strict_slashes=True)
 api.add_resource(LoginResource, "/login/", strict_slashes=True)
 api.add_resource(LogoutResource, "/logout/", strict_slashes=True)
+
+# Admin resources
+api.add_resource(UserListResource, "/admin/users/", strict_slashes=True)
+api.add_resource(UserResource, "/admin/users/<string:user_id>/", strict_slashes=True)
 api.add_resource(HijackResource, "/admin/hijack/", strict_slashes=True)

@@ -164,7 +164,8 @@
   
   .ql-editor {
     padding: 2rem;
-    font-size: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 12pt !important;
     line-height: 1.6;
     color: var(--dark-text);
     min-height: 456px;
@@ -178,10 +179,7 @@
   }
   
   .ql-toolbar {
-    border: none;
-    border-bottom: 1px solid #e9ecef;
-    padding: 1rem 2rem;
-    background: #f8f9fa;
+    display: none !important;
   }
   
   .ql-toolbar .ql-formats {
@@ -485,27 +483,14 @@
         throw new Error('Editor element not found');
       }
       
-      const toolbarOptions = [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'header': 1 }, { 'header': 2 }],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'font': [] }],
-        [{ 'align': [] }],
-        ['clean']
-      ];
+      const toolbarOptions = false; // Disable all toolbar options
       
       quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
-          toolbar: toolbarOptions
+          toolbar: false // Completely disable toolbar
         },
+        formats: [], // Disable all formats to prevent rich text
         placeholder: 'Start typing your operative note...'
       });
       
@@ -596,16 +581,15 @@
     document.getElementById('operationStart').textContent = formatDate(note.operation_datetime_start);
     document.getElementById('operationEnd').textContent = formatDate(note.operation_datetime_end);
     
-    // Set editor content
+    // Set editor content as plain text
     if (note.text && quill) {
-      // Use setContents with 'silent' source to avoid triggering text-change event
-      const delta = quill.clipboard.convert(note.text);
-      quill.setContents(delta, 'silent');
+      // Set content as plain text only
+      quill.setText(note.text, 'silent');
     } else if (note.text) {
       // Fallback if Quill isn't ready yet
       const editorElement = document.getElementById('editor');
       if (editorElement) {
-        editorElement.innerHTML = note.text;
+        editorElement.textContent = note.text;
       }
     }
     
@@ -652,12 +636,12 @@
     let content = '';
     
     if (quill) {
-      content = quill.root.innerHTML;
+      content = quill.getText(); // Get plain text instead of HTML
     } else {
       // Fallback to get content from editor element
       const editorElement = document.getElementById('editor');
       if (editorElement) {
-        content = editorElement.innerHTML;
+        content = editorElement.textContent || editorElement.innerText || '';
       }
     }
     

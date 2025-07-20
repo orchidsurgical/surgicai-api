@@ -277,13 +277,13 @@
       <div class="modal-body">
         <form id="newOpNoteForm">
           <div class="row g-3">
-            <div class="col-md-12">
-              <label for="patientId" class="form-label">Patient ID</label>
-              <input type="text" class="form-control" id="patientId">
-              <div class="form-text">
-                <i class="bi bi-info-circle text-muted"></i>
-                A de-identified patient identifier, for your records.
-              </div>
+            <div class="col-md-6">
+              <label for="patientFirstName" class="form-label">Patient First Name</label>
+              <input type="text" class="form-control" id="patientFirstName">
+            </div>
+            <div class="col-md-6">
+              <label for="patientLastName" class="form-label">Patient Last Name</label>
+              <input type="text" class="form-control" id="patientLastName">
             </div>
             <div class="col-md-6">
               <label for="startDateTime" class="form-label">Start Date & Time</label>
@@ -542,7 +542,9 @@ function updateOperativeNotesList(notes) {
   }
   
   notes.forEach(note => {
-    const patientId = note.patient_id || 'Unknown Patient ID';
+    const patientName = note.patient_first_name && note.patient_last_name ? 
+      `${note.patient_first_name} ${note.patient_last_name}` : 
+      'No patient name';
     
     // Format dates
     let startTime = 'Not scheduled';
@@ -581,8 +583,7 @@ function updateOperativeNotesList(notes) {
         <div>
           <h6 class="mb-1">${escapeHtml(note.title)}</h6>
           <p class="text-muted mb-0">
-            <i class="bi bi-person me-1"></i>Patient ID: ${escapeHtml(patientId)}
-            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="A de-identified patient identifier, for your records." style="color: #6c757d; font-size: 0.875rem;"></i>
+            <i class="bi bi-person me-1"></i>Patient: ${escapeHtml(patientName)}
             • <i class="bi bi-clock me-1"></i>${timeRange}
           </p>
         </div>
@@ -654,7 +655,8 @@ function saveNewOperativeNote() {
   
   // Get form data
   const formData = {
-    patient_id: document.getElementById('patientId').value,
+    patient_first_name: document.getElementById('patientFirstName').value,
+    patient_last_name: document.getElementById('patientLastName').value,
     operation_datetime_start: document.getElementById('startDateTime').value || null,
     operation_datetime_end: document.getElementById('endDateTime').value || null,
     title: document.getElementById('title').value,

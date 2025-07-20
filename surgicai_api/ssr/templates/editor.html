@@ -349,8 +349,8 @@
     <div class="patient-info" id="patientInfo">
       <div class="patient-info-grid">
         <div class="info-field">
-          <div class="info-label">Patient ID <i class="bi bi-info-circle-fill text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="A de-identified patient identifier, for your records."></i></div>
-          <div class="info-value" id="patientId">-</div>
+          <div class="info-label">Patient Name</div>
+          <div class="info-value" id="patientName">-</div>
         </div>
         <div class="info-field">
           <div class="info-label">Operation Start</div>
@@ -409,12 +409,18 @@
       </div>
       <div class="modal-body">
         <form id="patientForm">
-          <div class="mb-3">
-            <label class="form-label">Patient ID</label>
-            <input type="text" class="form-control" id="modalPatientId" name="patient_id">
-            <div class="form-text">
-              <i class="bi bi-info-circle text-muted"></i>
-              A de-identified patient identifier, for your records.
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Patient First Name</label>
+                <input type="text" class="form-control" id="modalPatientFirstName" name="patient_first_name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Patient Last Name</label>
+                <input type="text" class="form-control" id="modalPatientLastName" name="patient_last_name" required>
+              </div>
             </div>
           </div>
           <div class="row">
@@ -562,7 +568,10 @@
     document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
     
     // Update patient info
-    document.getElementById('patientId').textContent = note.patient_id || '-';
+    const patientName = note.patient_first_name && note.patient_last_name ? 
+      `${note.patient_first_name} ${note.patient_last_name}` : 
+      '-';
+    document.getElementById('patientName').textContent = patientName;
     
     // Format dates for display
     const formatDate = (dateStr) => {
@@ -712,7 +721,8 @@
     if (!currentNote) return;
     
     // Populate modal with current data
-    document.getElementById('modalPatientId').value = currentNote.patient_id || '';
+    document.getElementById('modalPatientFirstName').value = currentNote.patient_first_name || '';
+    document.getElementById('modalPatientLastName').value = currentNote.patient_last_name || '';
     
     // Format dates for datetime-local inputs
     const formatForInput = (dateStr) => {
@@ -743,7 +753,8 @@
     
     // Convert datetime-local values to proper format for API
     const updateData = {
-      patient_id: formData.get('patient_id') || null,
+      patient_first_name: formData.get('patient_first_name') || null,
+      patient_last_name: formData.get('patient_last_name') || null,
       operation_datetime_start: formData.get('operation_datetime_start') || null,
       operation_datetime_end: formData.get('operation_datetime_end') || null
     };
@@ -769,7 +780,10 @@
       currentNote = data;
       
       // Update patient info display
-      document.getElementById('patientId').textContent = data.patient_id || '-';
+      const patientName = data.patient_first_name && data.patient_last_name ? 
+        `${data.patient_first_name} ${data.patient_last_name}` : 
+        '-';
+      document.getElementById('patientName').textContent = patientName;
       
       const formatDate = (dateStr) => {
         if (!dateStr) return '-';

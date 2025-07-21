@@ -352,19 +352,8 @@ function showCreateTemplateModal() {
 
 // Edit template
 function editTemplate(templateId) {
-  const template = templates.find(t => t.id === templateId);
-  if (!template) return;
-  
-  editingTemplateId = templateId;
-  document.getElementById('templateModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit Template';
-  document.getElementById('save-btn-text').textContent = 'Update Template';
-  
-  // Populate form (only name and title, no text field)
-  document.getElementById('templateName').value = template.name || '';
-  document.getElementById('templateTitle').value = template.title || '';
-  
-  const modal = new bootstrap.Modal(document.getElementById('templateModal'));
-  modal.show();
+  // Redirect to template editor page
+  window.location.href = `/template_editor/${templateId}/`;
 }
 
 // Save template (create or update)

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Document Editor - OperativeAI{% endblock %}
+{% block title %}Template Editor - OperativeAI{% endblock %}
 
 {% block head %}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -13,6 +13,11 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     overflow: hidden;
+    transition: margin-right 0.3s ease;
+  }
+  
+  .editor-container.panel-open {
+    margin-right: 350px;
   }
   
   .editor-header {
@@ -97,13 +102,13 @@
     100% { opacity: 0.6; }
   }
   
-  .patient-info {
+  .template-info {
     background: #f8f9fa;
     padding: 1.5rem 2rem;
     border-bottom: 1px solid #e9ecef;
   }
   
-  .patient-info-grid {
+  .template-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
@@ -127,6 +132,27 @@
     font-size: 1rem;
     color: var(--dark-text);
     font-weight: 500;
+  }
+  
+  .info-input {
+    font-size: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.5rem;
+    background: white;
+    color: var(--dark-text);
+    transition: border-color 0.2s ease;
+  }
+  
+  .info-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+  }
+  
+  .info-input.modified {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.1);
   }
   
   .editor-toolbar {
@@ -211,6 +237,95 @@
     margin-right: 1rem;
   }
   
+  /* Template field highlighting */
+  .template-field {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-weight: 600;
+    color: #856404;
+    position: relative;
+    display: inline-block;
+    animation: highlight-pulse 2s infinite;
+  }
+  
+  .template-field::before {
+    content: "📝";
+    font-size: 0.8em;
+    margin-right: 2px;
+  }
+  
+  .template-field-overlay {
+    animation: fadeInUp 0.3s ease;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes highlight-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+  }
+  
+  /* Field count indicator */
+  .field-count-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0066cc;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+  }
+  
+  .field-count-indicator.show {
+    display: block;
+  }
+  
+  .template-fields-help {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .template-fields-help h6 {
+    color: #0066cc;
+    margin-bottom: 0.5rem;
+  }
+  
+  .template-fields-help p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .template-fields-help .example {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+  }
+  
   .save-indicator {
     position: fixed;
     top: 100px;
@@ -264,12 +379,6 @@
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes highlight-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
   }
   
   .action-buttons {
@@ -337,7 +446,7 @@
       align-items: flex-start;
     }
     
-    .patient-info-grid {
+    .template-info-grid {
       grid-template-columns: 1fr;
     }
     
@@ -551,6 +660,43 @@
   .help-toggle-btn.panel-open {
     right: 370px;
   }
+  
+  /* Modal Styling */
+  .modal-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-bottom: none;
+  }
+  
+  .modal-header .btn-close {
+    filter: invert(1);
+  }
+  
+  .modal-body {
+    padding: 2rem;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 2rem;
+  }
+  
+  .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.1);
+  }
+  
+  .alert-info {
+    background-color: #e7f3ff;
+    border-color: #b3d9ff;
+    color: #0c5460;
+  }
 </style>
 {% endblock %}
 
@@ -558,14 +704,14 @@
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-content">
     <div class="loading-spinner"></div>
-    <div>Loading operative note...</div>
+    <div>Loading template...</div>
   </div>
 </div>
 
 <div class="container-fluid py-4">
   <div class="editor-container">
     <div class="editor-header">
-      <input type="text" class="editor-title" id="documentTitle" placeholder="Enter document title..." maxlength="255">
+      <input type="text" class="editor-title" id="templateName" placeholder="Enter template name..." maxlength="255">
       <div class="editor-status">
         <span class="unsaved-indicator" id="unsavedIndicator" style="display: none;">
           <i class="bi bi-exclamation-circle me-1"></i>Unsaved changes
@@ -574,49 +720,51 @@
       </div>
     </div>
     
-    <div class="patient-info" id="patientInfo">
-      <div class="patient-info-grid">
+    <div class="template-info" id="templateInfo">
+      <div class="template-info-grid">
         <div class="info-field">
-          <div class="info-label">Patient Name</div>
-          <div class="info-value" id="patientName">-</div>
+          <div class="info-label">Template Name</div>
+          <input type="text" class="info-input" id="templateNameField" placeholder="Enter template name">
         </div>
         <div class="info-field">
-          <div class="info-label">Operation Start</div>
-          <div class="info-value" id="operationStart">-</div>
+          <div class="info-label">Default Title</div>
+          <input type="text" class="info-input" id="defaultTitle" placeholder="Default title for new operative notes">
         </div>
         <div class="info-field">
-          <div class="info-label">Operation End</div>
-          <div class="info-value" id="operationEnd">-</div>
+          <div class="info-label">Last Updated</div>
+          <div class="info-value" id="lastUpdatedField">-</div>
         </div>
         <div class="info-field">
-            <div class="info-label">Suggested Billing Codes <i class="bi bi-info-circle-fill text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Billing codes are generated using AI, based on your operative note, for maximized billables."></i></div>
-            <div class="info-value" id="billingCodes">-</div>
+          <div class="info-label">Template Fields</div>
+          <div class="info-value" id="fieldCount">
+            <span id="templateFieldsCount">0 fields detected</span>
+          </div>
         </div>
       </div>
     </div>
     
     <div class="editor-toolbar">
       <div class="toolbar-group">
-        <button class="btn btn-sm btn-outline-primary" onclick="editPatientInfo()">
-          <i class="bi bi-pencil me-1"></i>Edit Op Note Info
-        </button>
-        <button class="btn btn-sm btn-outline-primary" onclick="goToNextField()">
-          <i class="bi bi-arrow-right-circle me-1"></i>Next Field
+        <button class="btn btn-sm btn-outline-primary" onclick="insertTemplateField()">
+          <i class="bi bi-plus-circle me-1"></i>Insert Field
         </button>
         <div class="toolbar-separator"></div>
         <button class="btn btn-sm btn-outline-primary" onclick="toggleHelpPanel()">
           <i class="bi bi-question-circle me-1"></i>Help
         </button>
-        <button class="btn btn-sm btn-outline-primary" onclick="">
-          <i class="bi bi-magic me-1"></i>Optimize Note
+        <button class="btn btn-sm btn-outline-primary" onclick="previewTemplate()">
+          <i class="bi bi-eye me-1"></i>Preview Template
+        </button>
+        <button class="btn btn-sm btn-outline-primary" onclick="createOpNoteFromTemplate()">
+          <i class="bi bi-file-earmark-plus me-1"></i>Create OpNote from Template
         </button>
       </div>
       <div class="action-buttons">
-        <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
+        <button class="btn btn-sm btn-outline-primary" onclick="saveTemplate()" id="saveButton">
           <i class="bi bi-save me-1"></i>Save
         </button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="backToDashboard()">
-          <i class="bi bi-arrow-left me-1"></i>Back
+        <button class="btn btn-sm btn-outline-secondary" onclick="backToTemplates()">
+          <i class="bi bi-arrow-left me-1"></i>Back to Templates
         </button>
       </div>
     </div>
@@ -634,59 +782,16 @@
   <span id="saveMessage">Saved</span>
 </div>
 
-<!-- Patient Info Modal -->
-<div class="modal fade" id="patientModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Patient Information</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="patientForm">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Patient First Name</label>
-                <input type="text" class="form-control" id="modalPatientFirstName" name="patient_first_name" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Patient Last Name</label>
-                <input type="text" class="form-control" id="modalPatientLastName" name="patient_last_name" required>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Operation Start</label>
-                <input type="datetime-local" class="form-control" id="modalOperationStart" name="operation_datetime_start">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Operation End</label>
-                <input type="datetime-local" class="form-control" id="modalOperationEnd" name="operation_datetime_end">
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="savePatientInfo()">Save Changes</button>
-      </div>
-    </div>
-  </div>
+<div class="field-count-indicator" id="fieldCountIndicator">
+  <i class="bi bi-file-earmark-text me-1"></i>
+  <span id="fieldCountText">0 template fields</span>
 </div>
 
 <!-- Help Panel -->
 <div class="help-panel" id="helpPanel">
   <div class="help-panel-header">
     <h3 class="help-panel-title">
-      <i class="bi bi-question-circle me-2"></i>Document Editor Help
+      <i class="bi bi-question-circle me-2"></i>Template Editor Help
     </h3>
     <button class="help-panel-close" onclick="toggleHelpPanel()" aria-label="Close help panel">
       <i class="bi bi-x-lg"></i>
@@ -696,42 +801,51 @@
   <div class="help-panel-content">
     <div class="help-section">
       <div class="help-section-title">
+        <i class="bi bi-lightbulb"></i>
+        Template Fields
+      </div>
+      <div class="help-section-content">
+        <p>Use <code>***</code> to create template fields that will be replaced when creating operative notes.</p>
+        
+        <div class="help-example">
+          <div class="help-example-title">Example Template:</div>
+          <div class="help-example-content">Patient *** underwent *** procedure on ***.
+
+PROCEDURE: ***
+SURGEON: ***
+ANESTHESIA: ***
+
+FINDINGS:
+***
+
+PROCEDURE DETAILS:
+***</div>
+        </div>
+        
+        <p>Each <code>***</code> becomes a fillable field when creating an operative note from this template.</p>
+      </div>
+    </div>
+    
+    <div class="help-section">
+      <div class="help-section-title">
         <i class="bi bi-keyboard"></i>
         Keyboard Shortcuts
       </div>
       <div class="help-section-content">
         <div class="keyboard-shortcut">
-          <span class="shortcut-description">Save document</span>
+          <span class="shortcut-description">Save template</span>
           <div class="shortcut-keys">
             <span class="shortcut-key">Ctrl</span>
             <span class="shortcut-key">S</span>
           </div>
         </div>
         <div class="keyboard-shortcut">
-          <span class="shortcut-description">Save document (Mac)</span>
+          <span class="shortcut-description">Save template (Mac)</span>
           <div class="shortcut-keys">
             <span class="shortcut-key">⌘</span>
             <span class="shortcut-key">S</span>
           </div>
         </div>
-        <div class="keyboard-shortcut">
-          <span class="shortcut-description">Go to next field</span>
-          <div class="shortcut-keys">
-            <span class="shortcut-key">Tab</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="help-section">
-      <div class="help-section-title">
-        <i class="bi bi-pencil-square"></i>
-        Editing Tips
-      </div>
-      <div class="help-section-content">
-        <p>The editor saves your work automatically every 30 seconds when changes are detected.</p>
-        <p>Click "Edit Op Note Info" to update patient information, operation dates, and other metadata.</p>
-        <p>Template fields (***) are automatically highlighted to help you identify fillable areas.</p>
       </div>
     </div>
   </div>
@@ -741,6 +855,65 @@
 <button class="help-toggle-btn" id="helpToggleBtn" onclick="toggleHelpPanel()" aria-label="Toggle help panel">
   <i class="bi bi-question-circle"></i>
 </button>
+
+<!-- Create OpNote Modal -->
+<div class="modal fade" id="createOpNoteModal" tabindex="-1" aria-labelledby="createOpNoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createOpNoteModalLabel">
+          <i class="bi bi-file-earmark-plus me-2"></i>Create Operative Note from Template
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createOpNoteForm">
+          <div class="mb-3">
+            <label for="opNoteTitle" class="form-label">Title</label>
+            <input type="text" class="form-control" id="opNoteTitle" name="title" required>
+          </div>
+          <div class="mb-3">
+            <label for="patientFirstName" class="form-label">Patient First Name</label>
+            <input type="text" class="form-control" id="patientFirstName" name="patient_first_name">
+          </div>
+          <div class="mb-3">
+            <label for="patientLastName" class="form-label">Patient Last Name</label>
+            <input type="text" class="form-control" id="patientLastName" name="patient_last_name">
+          </div>
+          <div class="mb-3">
+            <label for="operationDate" class="form-label">Operation Date & Time</label>
+            <input type="datetime-local" class="form-control" id="operationDate" name="operation_datetime_start">
+            <div class="form-text">Optional: Set the date and time of the operation</div>
+          </div>
+        </form>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          This will create a new operative note using the content from this template. Template fields (***) will be preserved for you to fill in.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateOpNote()">
+          <i class="bi bi-file-earmark-plus me-1"></i>Create Operative Note
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <i class="bi bi-info-circle-fill me-2 text-primary" id="toastIcon"></i>
+      <strong class="me-auto" id="toastTitle">Notification</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toastBody">
+      Default message
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -748,28 +921,27 @@
 <script>
   // Global variables
   let quill;
-  let currentNote = null;
+  let currentTemplate = null;
   let autoSaveInterval = null;
   let isLoading = false;
   let hasUnsavedChanges = false;
   let isInitialLoad = true; // Flag to prevent triggering unsaved changes during initial load
-  let lastCursorPosition = 0; // Track last known cursor position
+  let templateFieldCount = 0; // Track number of template fields
   
   // Initialize the editor
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('Editor page loaded');
+    console.log('Template editor page loaded');
     
     // Wait for Quill to load
     function waitForQuill() {
       if (typeof Quill !== 'undefined') {
         console.log('Quill is available, initializing editor...');
         initializeQuill();
-        loadDocument();
+        loadTemplate();
         setupAutoSave();
         setupBeforeUnload();
-        setupTitleChangeListener();
+        setupChangeListeners();
         setupKeyboardShortcuts();
-        initializeTooltips();
       } else {
         console.log('Waiting for Quill to load...');
         setTimeout(waitForQuill, 100);
@@ -778,7 +950,7 @@
     
     waitForQuill();
   });
-
+  
   function initializeQuill() {
     try {
       const editorElement = document.getElementById('editor');
@@ -791,20 +963,10 @@
       quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
-          toolbar: false, // Completely disable toolbar
-          keyboard: {
-            bindings: {
-              tab: {
-                key: 'Tab',
-                handler: function(range, context) {
-                  return false;
-                }
-              }
-            }
-          }
+          toolbar: false // Completely disable toolbar
         },
         formats: ['background', 'color'], // Allow background and color for field highlighting
-        placeholder: 'Start typing your operative note...'
+        placeholder: 'Start typing your template content...'
       });
       
       console.log('Quill initialized successfully');
@@ -819,26 +981,19 @@
           window.fieldDetectionTimeout = setTimeout(detectAndHighlightTemplateFields, 500);
         }
       });
-      
-      // Listen for selection changes to track cursor position
-      quill.on('selection-change', function(range, oldRange, source) {
-        if (range) {
-          lastCursorPosition = range.index;
-        }
-      });
     } catch (error) {
       console.error('Error initializing Quill:', error);
       showToast('Error initializing editor. Please refresh the page.', 'danger');
     }
   }
   
-  function loadDocument() {
-    const noteId = '{{ note_id }}';
-    console.log('Loading document:', noteId);
+  function loadTemplate() {
+    const templateId = '{{ template_id }}';
+    console.log('Loading template:', templateId);
     
     showLoading(true);
     
-    fetch(`/api/v1/opnote/${noteId}`, {
+    fetch(`/api/v1/template/${templateId}/`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -852,15 +1007,15 @@
       return response.json();
     })
     .then(data => {
-      console.log('Document loaded:', data);
-      currentNote = data;
-      populateDocument(data);
+      console.log('Template loaded:', data);
+      currentTemplate = data;
+      populateTemplate(data);
       hasUnsavedChanges = false;
       // Don't show any save indicator on initial load
     })
     .catch(error => {
-      console.error('Error loading document:', error);
-      showToast('Error loading document: ' + error.message, 'danger');
+      console.error('Error loading template:', error);
+      showToast('Error loading template: ' + error.message, 'danger');
       updateSaveIndicator('error');
     })
     .finally(() => {
@@ -868,13 +1023,17 @@
     });
   }
   
-  function populateDocument(note) {
-    // Update header
-    document.getElementById('documentTitle').value = note.title || '';
+  function populateTemplate(template) {
+    // Update header title
+    document.getElementById('templateName').value = template.name || '';
+    
+    // Update template info fields
+    document.getElementById('templateNameField').value = template.name || '';
+    document.getElementById('defaultTitle').value = template.title || '';
     
     // Update last updated with better formatting
-    const lastUpdated = note.updated_at ? 
-      new Date(note.updated_at).toLocaleString('en-US', {
+    const lastUpdated = template.updated_at ? 
+      new Date(template.updated_at).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -884,48 +1043,34 @@
       }) : 'Never';
     document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
     
-    // Update patient info
-    const patientName = note.patient_first_name && note.patient_last_name ? 
-      `${note.patient_first_name} ${note.patient_last_name}` : 
-      '-';
-    document.getElementById('patientName').textContent = patientName;
-    
-    // Format dates for display
-    const formatDate = (dateStr) => {
-      if (!dateStr) return '-';
-      const date = new Date(dateStr);
-      return date.toLocaleString('en-US', {
+    // Format last updated date for the info field
+    const lastUpdatedForField = template.updated_at ? 
+      new Date(template.updated_at).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
-      });
-    };
-    
-    document.getElementById('operationStart').textContent = formatDate(note.operation_datetime_start);
-    document.getElementById('operationEnd').textContent = formatDate(note.operation_datetime_end);
+      }) : '-';
+    document.getElementById('lastUpdatedField').textContent = lastUpdatedForField;
     
     // Set editor content as plain text
-    if (note.text && quill) {
+    if (template.text && quill) {
       // Set content as plain text only
-      quill.setText(note.text, 'silent');
-    } else if (note.text) {
+      quill.setText(template.text, 'silent');
+    } else if (template.text) {
       // Fallback if Quill isn't ready yet
       const editorElement = document.getElementById('editor');
       if (editorElement) {
-        editorElement.textContent = note.text;
+        editorElement.textContent = template.text;
       }
     }
     
-    // Update button states
-    updateButtonStates(note.status);
-    
-    // Reset initial load flag after document is fully populated
+    // Reset initial load flag after template is fully populated
     setTimeout(() => {
       isInitialLoad = false;
-      // Detect and highlight template fields after initial load
+      // Detect and highlight fields after initial load
       detectAndHighlightTemplateFields();
     }, 200); // Increased timeout to ensure content is set
   }
@@ -944,11 +1089,16 @@
       matches.push({
         start: match.index,
         end: match.index + match[0].length,
-        text: match[0]
+        text: match[0],
+        fieldName: `Field ${matches.length + 1}`
       });
     }
     
-    // Apply highlighting to template fields
+    // Update field count
+    templateFieldCount = matches.length;
+    updateFieldCountDisplay(matches);
+    
+    // Since we're in plain text mode, we'll use overlay indicators
     highlightFieldsInEditor(matches);
   }
   
@@ -988,95 +1138,72 @@
     }
   }
   
-  function goToNextField() {
+  function updateFieldCountDisplay(matches = []) {
+    const fieldCountElement = document.getElementById('fieldCount');
+    const fieldCountIndicator = document.getElementById('fieldCountIndicator');
+    const templateFieldsCountElement = document.getElementById('templateFieldsCount');
+    const fieldCountTextElement = document.getElementById('fieldCountText');
+    
+    const count = matches.length;
+    const countText = count === 1 ? '1 field detected' : `${count} fields detected`;
+    const indicatorText = count === 1 ? '1 template field' : `${count} template fields`;
+    
+    if (templateFieldsCountElement) {
+      templateFieldsCountElement.textContent = countText;
+      if (count > 0) {
+        templateFieldsCountElement.style.color = '#0066cc';
+        templateFieldsCountElement.style.fontWeight = '600';
+      } else {
+        templateFieldsCountElement.style.color = '';
+        templateFieldsCountElement.style.fontWeight = '';
+      }
+    }
+    
+    if (fieldCountTextElement) {
+      fieldCountTextElement.textContent = indicatorText;
+    }
+    
+    if (fieldCountIndicator) {
+      if (count > 0) {
+        fieldCountIndicator.classList.add('show');
+      } else {
+        fieldCountIndicator.classList.remove('show');
+      }
+    }
+    
+    // Update the help section - no need to show field positions for unnamed fields
+    const existingFieldList = document.querySelector('.detected-fields');
+    if (existingFieldList) {
+      existingFieldList.remove();
+    }
+  }
+  
+  function insertTemplateField() {
     if (!quill) return;
     
-    const text = quill.getText();
-    const currentCursor = quill.getSelection()?.index ?? lastCursorPosition;
-    
-    // Find all *** patterns (just the three asterisks)
-    const fieldPattern = /\*\*\*/g;
-    let nextField = null;
-    let match;
-    
-    while ((match = fieldPattern.exec(text)) !== null) {
-      // Find the first field after the current cursor position
-      if (match.index > currentCursor) {
-        nextField = {
-          start: match.index,
-          end: match.index + match[0].length
-        };
-        break;
-      }
-    }
-    
-    // If no field found after cursor, wrap around to the first field
-    if (!nextField) {
-      fieldPattern.lastIndex = 0; // Reset regex
-      const firstMatch = fieldPattern.exec(text);
-      if (firstMatch) {
-        nextField = {
-          start: firstMatch.index,
-          end: firstMatch.index + firstMatch[0].length
-        };
-      }
-    }
-    
-    // Focus the editor and move to the next field
-    if (nextField) {
-      quill.focus();
-      quill.setSelection(nextField.start, nextField.end - nextField.start);
-      lastCursorPosition = nextField.start;
-      
-      // Scroll the field into view
-      const bounds = quill.getBounds(nextField.start, nextField.end - nextField.start);
-      if (bounds) {
-        const editorContainer = document.querySelector('.ql-editor');
-        if (editorContainer) {
-          editorContainer.scrollTo({
-            top: bounds.top - 100, // Offset for better visibility
-            behavior: 'smooth'
-          });
-        }
-      }
+    const selection = quill.getSelection();
+    if (selection) {
+      // Insert *** at the current cursor position
+      quill.insertText(selection.index, '***', 'user');
+      // Move cursor after the inserted field
+      quill.setSelection(selection.index + 3);
     } else {
-      // No fields found, just focus the editor at the last known position
-      quill.focus();
-      quill.setSelection(lastCursorPosition);
+      // If no selection, insert at the end
+      const length = quill.getLength();
+      quill.insertText(length - 1, '***', 'user');
+      quill.setSelection(length + 2);
     }
+    
+    // Trigger field detection after insertion
+    setTimeout(() => {
+      detectAndHighlightTemplateFields();
+    }, 100);
   }
   
-  function updateButtonStates(status) {
-    const saveButton = document.getElementById('saveButton');
-    const titleInput = document.getElementById('documentTitle');
-    
-    if (status === 'submitted') {
-      saveButton.disabled = true;
-      if (titleInput) {
-        titleInput.disabled = true;
-        titleInput.style.cursor = 'not-allowed';
-        titleInput.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-      }
-      if (quill) {
-        quill.disable();
-      }
-    } else {
-      saveButton.disabled = false;
-      if (titleInput) {
-        titleInput.disabled = false;
-        titleInput.style.cursor = 'text';
-        titleInput.style.backgroundColor = 'transparent';
-      }
-      if (quill) {
-        quill.enable();
-      }
-    }
-  }
-  
-  function saveDocument() {
+  function saveTemplate() {
     if (isLoading) return;
     
-    const noteId = '{{ note_id }}';
+    const templateId = '{{ template_id }}';
     let content = '';
     
     if (quill) {
@@ -1089,24 +1216,29 @@
       }
     }
     
-    const titleInput = document.getElementById('documentTitle');
+    const nameInput = document.getElementById('templateNameField');
+    const titleInput = document.getElementById('defaultTitle');
+    const headerNameInput = document.getElementById('templateName');
+    
+    const name = nameInput ? nameInput.value.trim() : '';
     const title = titleInput ? titleInput.value.trim() : '';
     
-    if (!title) {
-      showToast('Please enter a title for the document', 'warning');
-      titleInput?.focus();
+    if (!name) {
+      showToast('Please enter a name for the template', 'warning');
+      nameInput?.focus();
       return;
     }
     
     const updateData = {
-      title: title,
-      text: content
+      name: name,
+      title: title || null,
+      text: content || null
     };
     
-    console.log('Saving document:', updateData);
+    console.log('Saving template:', updateData);
     updateSaveIndicator('saving');
     
-    fetch(`/api/v1/opnote/${noteId}`, {
+    fetch(`/api/v1/template/${templateId}/`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -1121,16 +1253,20 @@
       return response.json();
     })
     .then(data => {
-      console.log('Document saved:', data);
-      currentNote = data;
+      console.log('Template saved:', data);
+      currentTemplate = data;
       hasUnsavedChanges = false;
       updateSaveIndicator('saved');
       
-      // Remove modified class from title
-      const titleInput = document.getElementById('documentTitle');
-      if (titleInput) {
-        titleInput.classList.remove('modified');
+      // Update header name to match
+      if (headerNameInput) {
+        headerNameInput.value = data.name;
+        headerNameInput.classList.remove('modified');
       }
+      
+      // Remove modified classes
+      nameInput?.classList.remove('modified');
+      titleInput?.classList.remove('modified');
       
       // Update last updated time with better formatting
       const lastUpdated = new Date(data.updated_at).toLocaleString('en-US', {
@@ -1142,67 +1278,143 @@
         hour12: true
       });
       document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
+      document.getElementById('lastUpdatedField').textContent = lastUpdated;
       
-      showToast('Document saved successfully', 'success');
+      showToast('Template saved successfully', 'success');
     })
     .catch(error => {
-      console.error('Error saving document:', error);
+      console.error('Error saving template:', error);
       updateSaveIndicator('error');
-      showToast('Error saving document: ' + error.message, 'danger');
+      showToast('Error saving template: ' + error.message, 'danger');
     });
   }
   
-  function editPatientInfo() {
-    if (!currentNote) return;
+  function previewTemplate() {
+    if (!currentTemplate) return;
     
-    // Populate modal with current data
-    document.getElementById('modalPatientFirstName').value = currentNote.patient_first_name || '';
-    document.getElementById('modalPatientLastName').value = currentNote.patient_last_name || '';
+    let content = '';
+    if (quill) {
+      content = quill.getText();
+    }
     
-    // Format dates for datetime-local inputs
-    const formatForInput = (dateStr) => {
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      // Format for datetime-local input
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
-    };
+    // Highlight template fields in the preview
+    const highlightedContent = content.replace(/\*\*\*/g, 
+      '<span style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 4px; padding: 2px 6px; font-weight: 600; color: #856404; display: inline-block; margin: 0 2px;">📝 <strong>***</strong> <em style="font-size: 0.8em; opacity: 0.7;">(field)</em></span>'
+    );
     
-    document.getElementById('modalOperationStart').value = formatForInput(currentNote.operation_datetime_start);
-    document.getElementById('modalOperationEnd').value = formatForInput(currentNote.operation_datetime_end);
+    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+    previewWindow.document.write(`
+      <html>
+        <head>
+          <title>Template Preview - ${currentTemplate.name}</title>
+          <style>
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              font-size: 12pt; 
+              line-height: 1.6; 
+              margin: 2rem; 
+              color: #333;
+            }
+            h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem; }
+            .template-info { 
+              background: #f8f9fa; 
+              padding: 1rem; 
+              border-radius: 8px; 
+              margin-bottom: 2rem; 
+            }
+            .template-fields-info {
+              background: #e7f3ff;
+              border: 1px solid #b3d9ff;
+              border-radius: 8px;
+              padding: 1rem;
+              margin-bottom: 1rem;
+            }
+            .template-fields-info h3 {
+              margin-top: 0;
+              color: #0066cc;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Template Preview: ${escapeHtml(currentTemplate.name)}</h1>
+          <div class="template-info">
+            <p><strong>Template Name:</strong> ${escapeHtml(currentTemplate.name)}</p>
+            <p><strong>Default Title:</strong> ${escapeHtml(currentTemplate.title || 'None')}</p>
+            <p><strong>Template Fields Found:</strong> ${templateFieldCount}</p>
+          </div>
+          ${templateFieldCount > 0 ? `
+          <div class="template-fields-info">
+            <h3>📝 Template Fields</h3>
+            <p>The highlighted sections below are template fields that will be replaced with actual values when creating an operative note from this template.</p>
+          </div>
+          ` : ''}
+          <div style="white-space: pre-wrap; line-height: 1.8;">${highlightedContent}</div>
+        </body>
+      </html>
+    `);
+    previewWindow.document.close();
+  }
+  
+  function createOpNoteFromTemplate() {
+    if (!currentTemplate) return;
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('patientModal'));
+    // Populate the modal with template's default title
+    const titleInput = document.getElementById('opNoteTitle');
+    if (titleInput && currentTemplate.title) {
+      titleInput.value = currentTemplate.title;
+    }
+    
+    // Clear other fields
+    document.getElementById('patientFirstName').value = '';
+    document.getElementById('patientLastName').value = '';
+    document.getElementById('operationDate').value = '';
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('createOpNoteModal'));
     modal.show();
   }
   
-  function savePatientInfo() {
-    if (isLoading) return;
+  function submitCreateOpNote() {
+    const form = document.getElementById('createOpNoteForm');
+    const formData = new FormData(form);
     
-    const noteId = '{{ note_id }}';
-    const formData = new FormData(document.getElementById('patientForm'));
+    // Get current template content
+    let templateContent = '';
+    if (quill) {
+      templateContent = quill.getText();
+    }
     
-    // Convert datetime-local values to proper format for API
-    const updateData = {
+    // Prepare the request data
+    const requestData = {
+      title: formData.get('title') || currentTemplate.title || 'Untitled Operative Note',
       patient_first_name: formData.get('patient_first_name') || null,
       patient_last_name: formData.get('patient_last_name') || null,
       operation_datetime_start: formData.get('operation_datetime_start') || null,
-      operation_datetime_end: formData.get('operation_datetime_end') || null
+      text: templateContent || null
     };
     
-    console.log('Saving patient info:', updateData);
+    // Validate required fields
+    if (!requestData.title.trim()) {
+      showToast('Please enter a title for the operative note', 'warning');
+      return;
+    }
     
-    fetch(`/api/v1/opnote/${noteId}`, {
-      method: 'PUT',
+    console.log('Creating operative note from template:', requestData);
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#createOpNoteModal .btn-primary');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating...';
+    submitBtn.disabled = true;
+    
+    // Submit to API
+    fetch('/api/v1/opnote/', {
+      method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(updateData)
+      body: JSON.stringify(requestData)
     })
     .then(response => {
       if (!response.ok) {
@@ -1211,69 +1423,97 @@
       return response.json();
     })
     .then(data => {
-      console.log('Patient info saved:', data);
-      currentNote = data;
+      console.log('Operative note created:', data);
       
-      // Update patient info display
-      const patientName = data.patient_first_name && data.patient_last_name ? 
-        `${data.patient_first_name} ${data.patient_last_name}` : 
-        '-';
-      document.getElementById('patientName').textContent = patientName;
-      
-      const formatDate = (dateStr) => {
-        if (!dateStr) return '-';
-        const date = new Date(dateStr);
-        return date.toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        });
-      };
-      
-      document.getElementById('operationStart').textContent = formatDate(data.operation_datetime_start);
-      document.getElementById('operationEnd').textContent = formatDate(data.operation_datetime_end);
-      
-      // Update last updated time with better formatting
-      const lastUpdated = new Date(data.updated_at).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
-      
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('patientModal'));
+      // Hide modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('createOpNoteModal'));
       modal.hide();
       
-      showToast('Patient information updated successfully', 'success');
+      // Show success message
+      showToast('Operative note created successfully! Redirecting to editor...', 'success');
+      
+      // Redirect to the operative note editor
+      setTimeout(() => {
+        window.location.href = `/editor/${data.id}`;
+      }, 1500);
     })
     .catch(error => {
-      console.error('Error saving patient info:', error);
-      showToast('Error saving patient information: ' + error.message, 'danger');
+      console.error('Error creating operative note:', error);
+      showToast('Error creating operative note: ' + error.message, 'danger');
+    })
+    .finally(() => {
+      // Restore button state
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
     });
   }
   
   function setupAutoSave() {
     // Auto-save every 30 seconds if there are unsaved changes
     autoSaveInterval = setInterval(() => {
-      if (hasUnsavedChanges && !isLoading && currentNote && currentNote.status !== 'submitted') {
-        console.log('Auto-saving document...');
-        saveDocument();
+      if (hasUnsavedChanges && !isLoading && currentTemplate) {
+        console.log('Auto-saving template...');
+        saveTemplate();
       }
     }, 30000); // 30 seconds
   }
   
-  function setupTitleChangeListener() {
-    const titleInput = document.getElementById('documentTitle');
+  function setupChangeListeners() {
+    const headerNameInput = document.getElementById('templateName');
+    const nameInput = document.getElementById('templateNameField');
+    const titleInput = document.getElementById('defaultTitle');
+    
+    // Header name input
+    if (headerNameInput) {
+      headerNameInput.addEventListener('input', function() {
+        const hasChanged = this.value !== (currentTemplate?.name || '');
+        if (hasChanged && !isInitialLoad) {
+          hasUnsavedChanges = true;
+          updateSaveIndicator('modified');
+          this.classList.add('modified');
+          // Sync with the field input
+          if (nameInput) nameInput.value = this.value;
+        } else {
+          this.classList.remove('modified');
+        }
+      });
+      
+      // Save on Enter key
+      headerNameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.blur();
+        }
+      });
+    }
+    
+    // Template name field
+    if (nameInput) {
+      nameInput.addEventListener('input', function() {
+        const hasChanged = this.value !== (currentTemplate?.name || '');
+        if (hasChanged && !isInitialLoad) {
+          hasUnsavedChanges = true;
+          updateSaveIndicator('modified');
+          this.classList.add('modified');
+          // Sync with header input
+          if (headerNameInput) headerNameInput.value = this.value;
+        } else {
+          this.classList.remove('modified');
+        }
+      });
+      
+      nameInput.addEventListener('blur', function() {
+        if (hasUnsavedChanges && this.value !== (currentTemplate?.name || '')) {
+          console.log('Name changed, auto-saving...');
+          saveTemplate();
+        }
+      });
+    }
+    
+    // Default title field
     if (titleInput) {
       titleInput.addEventListener('input', function() {
-        const hasChanged = this.value !== (currentNote?.title || '');
+        const hasChanged = this.value !== (currentTemplate?.title || '');
         if (hasChanged && !isInitialLoad) {
           hasUnsavedChanges = true;
           updateSaveIndicator('modified');
@@ -1283,19 +1523,10 @@
         }
       });
       
-      // Save title on blur if it has changed
       titleInput.addEventListener('blur', function() {
-        if (hasUnsavedChanges && this.value !== (currentNote?.title || '')) {
+        if (hasUnsavedChanges && this.value !== (currentTemplate?.title || '')) {
           console.log('Title changed, auto-saving...');
-          saveDocument();
-        }
-      });
-      
-      // Save title on Enter key
-      titleInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          this.blur(); // Trigger blur event to save
+          saveTemplate();
         }
       });
     }
@@ -1316,13 +1547,7 @@
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault(); // Prevent browser's default save behavior
         console.log('Save shortcut detected');
-        saveDocument();
-      }
-      
-      // Check for Tab key to go to next field - always prevent default Tab behavior on this page
-      if (e.key === 'Tab') {
-        e.preventDefault(); // Prevent default tab behavior
-        goToNextField();
+        saveTemplate();
       }
     });
   }
@@ -1384,31 +1609,19 @@
     }
   }
   
-  function backToDashboard() {
+  function backToTemplates() {
     if (hasUnsavedChanges) {
       if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
         return;
       }
     }
-    window.location.href = '/dashboard';
+    window.location.href = '/templates';
   }
   
-  function initializeTooltips() {
-    // Initialize tooltips for info icons
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-  }
-  
-  function showToast(message, type = 'info') {
-    // Simple console log for now - can be enhanced with actual toast UI later
-    console.log(`${type.toUpperCase()}: ${message}`);
-    
-    // For now, use browser alert for critical messages
-    if (type === 'danger' || type === 'error') {
-      alert(message);
-    }
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
   
   function toggleHelpPanel() {
@@ -1431,6 +1644,31 @@
         helpToggleBtn.classList.add('panel-open');
       }
     }
+  }
+  
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('liveToast');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastBody = document.getElementById('toastBody');
+    
+    // Set icon and title based on type
+    const config = {
+      'success': { icon: 'bi-check-circle-fill', class: 'text-success', title: 'Success' },
+      'danger': { icon: 'bi-exclamation-triangle-fill', class: 'text-danger', title: 'Error' },
+      'warning': { icon: 'bi-exclamation-triangle-fill', class: 'text-warning', title: 'Warning' },
+      'info': { icon: 'bi-info-circle-fill', class: 'text-primary', title: 'Info' }
+    };
+    
+    const typeConfig = config[type] || config['info'];
+    
+    toastIcon.className = `bi ${typeConfig.icon} me-2 ${typeConfig.class}`;
+    toastTitle.textContent = typeConfig.title;
+    toastBody.textContent = message;
+    
+    // Show toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
   }
   
   // Clean up on page unload

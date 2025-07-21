@@ -199,7 +199,15 @@
             </div>
             <div class="col-md-6">
               <label for="endDateTime" class="form-label">End Date & Time</label>
-              <input type="datetime-local" class="form-control" id="endDateTime" required>
+              <input type="datetime-local" class="form-control" id="endDateTime">
+            </div>
+            <div class="col-12">
+              <label for="templateSelect" class="form-label">Template (Optional)</label>
+              <select class="form-select" id="templateSelect" onchange="onTemplateSelected()">
+                <option value="">Select a template...</option>
+                <!-- Templates will be loaded here -->
+              </select>
+              <div class="form-text">Choose a template to pre-populate the operative note content</div>
             </div>
             <div class="col-12">
               <label for="title" class="form-label">Title</label>
@@ -299,6 +307,8 @@
 // Global variables for operative notes
 let allOpNotes = [];
 let filteredOpNotes = [];
+let allTemplates = [];
+let selectedTemplate = null;
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
@@ -317,6 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const opNoteModal = document.getElementById('newOpNoteModal');
   if (opNoteModal) {
     opNoteModal.addEventListener('show.bs.modal', function() {
+      // Load templates when modal opens
+      loadTemplates();
+      
+      // Reset form
+      selectedTemplate = null;
+      const templateSelect = document.getElementById('templateSelect');
+      if (templateSelect) {
+        templateSelect.value = '';
+      }
+      
       // Set default start time to current time
       const now = new Date();
       const startInput = document.getElementById('startDateTime');
@@ -641,6 +661,87 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Load templates from API
+function loadTemplates() {
+  fetch('/api/v1/template/', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    allTemplates = data;
+    updateTemplateDropdown();
+  })
+  .catch(error => {
+    console.error('Error loading templates:', error);
+    // Don't show error to user, just leave dropdown empty
+  });
+}
+
+// Update template dropdown with available templates
+function updateTemplateDropdown() {
+  const templateSelect = document.getElementById('templateSelect');
+  if (!templateSelect) return;
+  
+  // Clear existing options except the first one
+  while (templateSelect.children.length > 1) {
+    templateSelect.removeChild(templateSelect.lastChild);
+  }
+  
+  // Add template options
+  allTemplates.forEach(template => {
+    const option = document.createElement('option');
+    option.value = template.id;
+    option.textContent = template.name;
+    templateSelect.appendChild(option);
+  });
+}
+
+// Handle template selection
+function onTemplateSelected() {
+  const templateSelect = document.getElementById('templateSelect');
+  const titleInput = document.getElementById('title');
+
+  if (!templateSelect || !titleInput) return;
+
+  const templateId = templateSelect.value;
+  
+  if (!templateId) {
+    // No template selected, clear selectedTemplate
+    selectedTemplate = null;
+    return;
+  }
+  
+  // Fetch the full template details including content
+  fetch(`/api/v1/template/${templateId}`, {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(template => {
+    selectedTemplate = template;
+    
+    // Populate the title field with the template name
+    titleInput.value = template.title || '';
+    
+    console.log('Template selected:', template);
+  })
+  .catch(error => {
+    console.error('Error loading template details:', error);
+    selectedTemplate = null;
+  });
+}
+
 // Save new operative note (updated to refresh list after creation)
 function saveNewOperativeNote() {
   const form = document.getElementById('newOpNoteForm');
@@ -656,7 +757,7 @@ function saveNewOperativeNote() {
     operation_datetime_start: document.getElementById('startDateTime').value || null,
     operation_datetime_end: document.getElementById('endDateTime').value || null,
     title: document.getElementById('title').value,
-    text: null,
+    text: selectedTemplate ? selectedTemplate.text : null,
     status: 'draft'
   };
   

@@ -27,3 +27,9 @@ def preferences():
 @check_jwt
 def templates():
     return render_template("templates.html")
+
+
+@home_bp.route("/template_editor/<string:template_id>/", methods=["GET"])
+@check_jwt
+def template_editor(template_id):
+    return render_template("template_editor.html", template_id=template_id)

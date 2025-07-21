@@ -9,7 +9,12 @@ from surgicai_api.api.router import api_bp
 from surgicai_api.extensions import boto, cors, emails
 from surgicai_api.ssr.router import ssr_router
 
-app = Flask(__name__, template_folder="ssr/templates")
+app = Flask(
+    __name__,
+    template_folder="ssr/templates",
+    static_folder="ssr/static",
+    static_url_path="/static",
+)
 app.config.from_object(config.Config)
 
 # Register the routers

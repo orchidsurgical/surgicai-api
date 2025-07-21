@@ -10,7 +10,9 @@ class Template(BaseModel):
 
     __tablename__ = "templates"
 
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    owner_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     name = Column(String(255), nullable=True)
     title = Column(String(255), nullable=False)
     text = Column(Text, nullable=True)

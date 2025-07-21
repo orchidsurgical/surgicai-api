@@ -21,7 +21,9 @@ class OpNote(BaseModel):
 
     __tablename__ = "op_notes"
 
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    owner_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String(255), nullable=False)
     status = Column(SqlEnum(OpNoteStatus), nullable=False, default=OpNoteStatus.DRAFT)
     patient_id = Column(String(255), nullable=True)

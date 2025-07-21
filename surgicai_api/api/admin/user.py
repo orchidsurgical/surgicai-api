@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 
 from surgicai_api.api.fields import StrictUUID, validate_uuid
 from surgicai_api.models import User, UserType
+from surgicai_api.services.user import create_user
 from surgicai_api.ssr.views import check_jwt
 
 
@@ -35,9 +36,7 @@ class UserListResource(Resource):
             data = schema.load(request.json)
         except ValidationError as err:
             return {"errors": err.messages}, 400
-        password = generate_password_hash(data.pop("password"))
-        user = User(**data, password=password)
-        g.db.add(user)
+        user = create_user(g.db, **data)
         g.db.commit()
         return schema.dump(user), 201
 

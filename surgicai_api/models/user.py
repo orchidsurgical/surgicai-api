@@ -30,8 +30,12 @@ class User(BaseModel):
     timezone = Column(String(64), nullable=True, default=None)
     last_login = Column(DateTime, nullable=True)
 
-    op_notes = relationship("OpNote", back_populates="owner", lazy="dynamic")
-    templates = relationship("Template", back_populates="owner", lazy="dynamic")
+    op_notes = relationship(
+        "OpNote", back_populates="owner", lazy="dynamic", passive_deletes=True
+    )
+    templates = relationship(
+        "Template", back_populates="owner", lazy="dynamic", passive_deletes=True
+    )
 
     def __repr__(self):
         return f"<User(email={self.email})>"

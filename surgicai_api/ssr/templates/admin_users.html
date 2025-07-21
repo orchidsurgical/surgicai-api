@@ -728,7 +728,7 @@ function showHijackModal(userId) {
   const user = users.find(u => u.id === userId);
   if (!user) return;
   
-  deletingUserId = userId;
+  hijackingUserId = userId;
   
   // Populate hijack modal with user info
   document.getElementById('hijack-user-info').innerHTML = `
@@ -848,7 +848,7 @@ async function confirmDelete() {
 
 // Confirm hijack
 async function confirmHijack() {
-  if (!deletingUserId) return;
+  if (!hijackingUserId) return;
   
   try {
     const response = await fetch(`/api/v1/admin/hijack/`, {
@@ -856,7 +856,7 @@ async function confirmHijack() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ user_id: deletingUserId })
+      body: JSON.stringify({ user_id: hijackingUserId })
     });
     
     if (!response.ok) {
@@ -897,66 +897,7 @@ function validatePasswordMatch() {
   }
 }
 
-
-
-    // Hijack user account (admin feature)
-    function hijackUser(userId) {
-      const user = users.find(u => u.id === userId);
-      if (!user) return;
-      
-      hijackingUserId = userId;
-      
-      // Populate hijack modal with user info
-      document.getElementById('hijack-user-info').innerHTML = `
-        <div class="d-flex align-items-center">
-          <div class="user-avatar me-3">
-            ${getUserInitials(user)}
-          </div>
-          <div>
-            <h6 class="mb-0">${getUserDisplayName(user)}</h6>
-            <small class="text-muted">${user.email}</small>
-            <br>
-            <span class="user-type-badge user-type-${user.user_type}">
-              ${formatUserType(user.user_type)}
-            </span>
-          </div>
-        </div>
-      `;
-      
-      const modal = new bootstrap.Modal(document.getElementById('hijackModal'));
-      modal.show();
-    }
-
-    // Confirm hijack
-    async function confirmHijack() {
-      if (!hijackingUserId) return;
-      
-      try {
-        const response = await fetch(`/api/v1/admin/hijack/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ user_id: hijackingUserId })
-        });
-        
-        if (response.ok) {
-          // Close modal
-          const modal = bootstrap.Modal.getInstance(document.getElementById('hijackModal'));
-          modal.hide();
-          
-          // Show success message and redirect to dashboard after successful hijack
-          showToast('Successfully hijacked user account!', 'success');
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 1000);
-        } else {
-          const error = await response.json();
-          showToast('Error hijacking user: ' + error.message, 'danger');
-        }
-      } catch (error) {
-        showToast('Error hijacking user: ' + error.message, 'danger');
-      }
-    }
+// Toast notification function - use global function from base.html
+// No need to redefine here since it's already available globally
 </script>
 {% endblock %}

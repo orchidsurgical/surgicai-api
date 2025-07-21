@@ -1451,15 +1451,8 @@
     });
   }
   
-  function showToast(message, type = 'info') {
-    // Simple console log for now - can be enhanced with actual toast UI later
-    console.log(`${type.toUpperCase()}: ${message}`);
-    
-    // For now, use browser alert for critical messages
-    if (type === 'danger' || type === 'error') {
-      alert(message);
-    }
-  }
+  // Toast notification function - use global function from base.html
+  // No need to redefine here since it's already available globally
   
   // Template management functions
   function loadTemplatesForModal() {

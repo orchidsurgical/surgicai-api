@@ -33,7 +33,12 @@ class OpNoteListResource(Resource):
     method_decorators = [check_jwt]
 
     def get(self):
-        notes = g.db.query(OpNote).filter_by(owner_id=g.user.id).all()
+        notes = (
+            g.db.query(OpNote)
+            .filter_by(owner_id=g.user.id)
+            .order_by(OpNote.created_at.desc())
+            .all()
+        )
         return schema.dump(notes, many=True), 200
 
     def post(self):

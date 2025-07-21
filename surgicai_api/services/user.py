@@ -8,6 +8,7 @@ def create_user(
     email,
     password,
     user_type=UserType.SURGEON,
+    prefix=None,
     first_name=None,
     last_name=None,
 ):
@@ -20,6 +21,7 @@ def create_user(
         email=email,
         password=password,
         user_type=user_type,
+        prefix=prefix,
         first_name=first_name,
         last_name=last_name,
     )
@@ -27,10 +29,11 @@ def create_user(
     session.flush()
 
     # Create the default template for the user
-    with open("surgicai_api/ssr/templates/default_template.txt", "r") as f:
+    with open("surgicai_api/services/default_template.txt", "r") as f:
         template_text = f.read()
     template = Template(
         name="Default Template",
+        title="Operative Note",
         text=template_text,
         owner_id=user.id,
     )

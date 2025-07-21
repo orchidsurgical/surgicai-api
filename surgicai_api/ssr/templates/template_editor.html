@@ -900,20 +900,6 @@ PROCEDURE DETAILS:
     </div>
   </div>
 </div>
-
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header">
-      <i class="bi bi-info-circle-fill me-2 text-primary" id="toastIcon"></i>
-      <strong class="me-auto" id="toastTitle">Notification</strong>
-      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    <div class="toast-body" id="toastBody">
-      Default message
-    </div>
-  </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -1646,30 +1632,8 @@ PROCEDURE DETAILS:
     }
   }
   
-  function showToast(message, type = 'info') {
-    const toast = document.getElementById('liveToast');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastBody = document.getElementById('toastBody');
-    
-    // Set icon and title based on type
-    const config = {
-      'success': { icon: 'bi-check-circle-fill', class: 'text-success', title: 'Success' },
-      'danger': { icon: 'bi-exclamation-triangle-fill', class: 'text-danger', title: 'Error' },
-      'warning': { icon: 'bi-exclamation-triangle-fill', class: 'text-warning', title: 'Warning' },
-      'info': { icon: 'bi-info-circle-fill', class: 'text-primary', title: 'Info' }
-    };
-    
-    const typeConfig = config[type] || config['info'];
-    
-    toastIcon.className = `bi ${typeConfig.icon} me-2 ${typeConfig.class}`;
-    toastTitle.textContent = typeConfig.title;
-    toastBody.textContent = message;
-    
-    // Show toast
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-  }
+  // Toast notification function - use global function from base.html
+  // No need to redefine here since it's already available globally
   
   // Clean up on page unload
   window.addEventListener('beforeunload', () => {

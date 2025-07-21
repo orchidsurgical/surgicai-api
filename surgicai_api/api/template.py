@@ -24,7 +24,12 @@ class TemplateListResource(Resource):
     method_decorators = [check_jwt]
 
     def get(self):
-        templates = g.db.query(Template).filter_by(owner_id=g.user.id).all()
+        templates = (
+            g.db.query(Template)
+            .filter_by(owner_id=g.user.id)
+            .order_by(Template.name.asc())
+            .all()
+        )
         return schema.dump(templates, many=True), 200
 
     def post(self):

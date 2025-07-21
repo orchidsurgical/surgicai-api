@@ -26,6 +26,39 @@
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
     border-radius: 12px 12px 0 0;
   }
+  
+  /* Form validation styles */
+  .is-invalid {
+    border-color: #dc3545;
+  }
+  
+  .is-valid {
+    border-color: #28a745;
+  }
+  
+  .password-strength {
+    margin-top: 8px;
+    font-size: 0.875rem;
+  }
+  
+  .password-strength-bar {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  
+  .password-strength-fill {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+  
+  .strength-weak { background: #dc3545; width: 25%; }
+  .strength-fair { background: #ffc107; width: 50%; }
+  .strength-good { background: #fd7e14; width: 75%; }
+  .strength-strong { background: #28a745; width: 100%; }
 </style>
 {% endblock %}
 
@@ -62,6 +95,14 @@
             <div class="mb-3">
               <label for="password" class="form-label">New Password <span class="text-muted">(leave blank to keep current)</span></label>
               <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+              <div class="password-strength" id="password-strength" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <small id="strength-text">Password strength: </small>
+                </div>
+                <div class="password-strength-bar">
+                  <div class="password-strength-fill" id="strength-fill"></div>
+                </div>
+              </div>
               <div class="form-text">
                 Password must contain: at least 8 characters, 1 lowercase, 1 uppercase, and 1 special character (!@#$%^&*)
               </div>
@@ -191,11 +232,21 @@ function loadPreferences() {
       document.getElementById('lastName').value = data.last_name || '';
       document.getElementById('email').value = data.email || '';
       populateTimezones(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+    })
+    .catch(error => {
+      console.error('Error loading preferences:', error);
+      showToast('Error loading preferences', 'danger');
     });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   loadPreferences();
+  
+  // Setup password strength checker
+  const passwordInput = document.getElementById('password');
+  passwordInput.addEventListener('input', updatePasswordStrength);
+  
+  // Setup form submission
   document.getElementById('preferencesForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;
@@ -211,23 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validate password strength if password is provided
     if (password) {
-      const passwordErrors = [];
-      
-      if (password.length < 8) {
-        passwordErrors.push('at least 8 characters');
-      }
-      if (!/[a-z]/.test(password)) {
-        passwordErrors.push('at least 1 lowercase letter');
-      }
-      if (!/[A-Z]/.test(password)) {
-        passwordErrors.push('at least 1 uppercase letter');
-      }
-      if (!/[!@#$%^&*]/.test(password)) {
-        passwordErrors.push('at least 1 special character (!@#$%^&*)');
-      }
-      
-      if (passwordErrors.length > 0) {
-        showToast(`Password must contain: ${passwordErrors.join(', ')}`, 'danger');
+      const strength = checkPasswordStrength(password);
+      if (strength.score < 3) {
+        showToast('Password is too weak. Please choose a stronger password.', 'warning');
         return;
       }
     }
@@ -244,6 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
       data.password = password;
     }
     
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    
     fetch('/api/v1/me/', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -255,13 +298,21 @@ document.addEventListener('DOMContentLoaded', function() {
       return r.json();
     })
     .then(() => {
-      showToast('Preferences updated!', 'success');
+      showToast('Your preferences have been updated successfully!', 'success');
       // Clear password fields after successful update
       form.password.value = '';
       form.confirm_password.value = '';
+      // Update current email for delete account validation
+      currentUserEmail = data.email;
+      updatePasswordStrength(); // Reset password strength indicator
     })
     .catch(err => {
-      showToast(err.message || 'Error updating preferences', 'danger');
+      showToast(err.message || 'Error updating preferences. Please try again.', 'danger');
+    })
+    .finally(() => {
+      // Restore button state
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
     });
   });
   
@@ -348,6 +399,62 @@ async function confirmDeleteAccount() {
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     confirmDeleteBtn.disabled = false;
     confirmDeleteBtn.innerHTML = '<i class="bi bi-trash me-2"></i>Delete My Account';
+  }
+}
+
+// Toast notification function - use global function from base.html
+// No need to redefine here since it's already available globally
+
+// Password strength checker
+function checkPasswordStrength(password) {
+  if (!password) return { score: 0, text: '', class: '' };
+  
+  let score = 0;
+  const checks = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    special: /[!@#$%^&*]/.test(password),
+    number: /\d/.test(password)
+  };
+  
+  Object.values(checks).forEach(check => {
+    if (check) score++;
+  });
+  
+  if (score < 2) return { score: 1, text: 'Weak', class: 'strength-weak' };
+  if (score < 3) return { score: 2, text: 'Fair', class: 'strength-fair' };
+  if (score < 4) return { score: 3, text: 'Good', class: 'strength-good' };
+  return { score: 4, text: 'Strong', class: 'strength-strong' };
+}
+
+function updatePasswordStrength() {
+  const passwordInput = document.getElementById('password');
+  const strengthDiv = document.getElementById('password-strength');
+  const strengthText = document.getElementById('strength-text');
+  const strengthFill = document.getElementById('strength-fill');
+  
+  const password = passwordInput.value;
+  
+  if (!password) {
+    strengthDiv.style.display = 'none';
+    passwordInput.classList.remove('is-valid', 'is-invalid');
+    return;
+  }
+  
+  strengthDiv.style.display = 'block';
+  const strength = checkPasswordStrength(password);
+  
+  strengthText.textContent = `Password strength: ${strength.text}`;
+  strengthFill.className = `password-strength-fill ${strength.class}`;
+  
+  // Add validation classes
+  if (strength.score >= 3) {
+    passwordInput.classList.add('is-valid');
+    passwordInput.classList.remove('is-invalid');
+  } else {
+    passwordInput.classList.add('is-invalid');
+    passwordInput.classList.remove('is-valid');
   }
 }
 </script>

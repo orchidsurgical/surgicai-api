@@ -1275,7 +1275,7 @@ PROCEDURE DETAILS:
     
     let content = '';
     if (quill) {
-      content = quill.getText();
+      content = quill.getText().trim();
     }
     
     // Highlight template fields in the preview

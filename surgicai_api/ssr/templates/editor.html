@@ -605,7 +605,6 @@
         <button class="btn btn-sm btn-outline-primary" onclick="goToNextField()">
           <i class="bi bi-arrow-right-circle me-1"></i>Next Field
         </button>
-        <div class="toolbar-separator"></div>
       </div>
       <div class="action-buttons">
         <button class="btn btn-sm btn-primary" onclick="">
@@ -1101,7 +1100,7 @@
     let content = '';
     
     if (quill) {
-      content = quill.getText(); // Get plain text instead of HTML
+      content = quill.getText().trim(); // Get plain text instead of HTML
     } else {
       // Fallback to get content from editor element
       const editorElement = document.getElementById('editor');

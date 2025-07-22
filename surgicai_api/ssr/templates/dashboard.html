@@ -115,14 +115,14 @@
               <span class="input-group-text">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by title or patient name..." onkeyup="filterOpNotes()">
+              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by title..." onkeyup="filterOpNotes()">
             </div>
           </div>
           <div class="col-md-4">
             <select class="form-select" id="sort-opnotes" onchange="sortOpNotes()">
               <option value="operation_datetime_start">Sort by Date</option>
               <option value="title">Sort by Title</option>
-              <option value="patient_name">Sort by Patient</option>
+
               <option value="created_at">Sort by Created</option>
               <option value="updated_at">Sort by Updated</option>
             </select>
@@ -185,14 +185,6 @@
       <div class="modal-body">
         <form id="newOpNoteForm">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label for="patientFirstName" class="form-label">Patient First Name</label>
-              <input type="text" class="form-control" id="patientFirstName">
-            </div>
-            <div class="col-md-6">
-              <label for="patientLastName" class="form-label">Patient Last Name</label>
-              <input type="text" class="form-control" id="patientLastName">
-            </div>
             <div class="col-md-6">
               <label for="startDateTime" class="form-label">Start Date & Time</label>
               <input type="datetime-local" class="form-control" id="startDateTime" required>
@@ -479,8 +471,7 @@ function filterOpNotes() {
   } else {
     filteredOpNotes = allOpNotes.filter(note => {
       const title = note.title?.toLowerCase() || '';
-      const patientName = `${note.patient_first_name || ''} ${note.patient_last_name || ''}`.toLowerCase();
-      return title.includes(searchTerm) || patientName.includes(searchTerm);
+      return title.includes(searchTerm);
     });
   }
   
@@ -495,10 +486,6 @@ function sortOpNotes() {
     let aValue, bValue;
     
     switch (sortBy) {
-      case 'patient_name':
-        aValue = `${a.patient_first_name || ''} ${a.patient_last_name || ''}`.trim();
-        bValue = `${b.patient_first_name || ''} ${b.patient_last_name || ''}`.trim();
-        break;
       case 'operation_datetime_start':
         aValue = a.operation_datetime_start ? new Date(a.operation_datetime_start) : new Date(0);
         bValue = b.operation_datetime_start ? new Date(b.operation_datetime_start) : new Date(0);
@@ -542,9 +529,6 @@ function updateOperativeNotesList() {
   opnotesCard.style.display = 'block';
   
   scheduleList.innerHTML = filteredOpNotes.map(note => {
-    const patientName = note.patient_first_name && note.patient_last_name ? 
-      `${note.patient_first_name} ${note.patient_last_name}` : 
-      'No patient name';
     
     // Format dates
     let timeRange = 'Not scheduled';
@@ -578,11 +562,6 @@ function updateOperativeNotesList() {
               <h5 class="mb-0 me-3">${escapeHtml(note.title)}</h5>
               <span class="badge bg-light text-dark">Operative Note</span>
             </div>
-            
-            <p class="mb-2 text-muted">
-              <i class="bi bi-person me-1"></i>
-              Patient: <strong>${escapeHtml(patientName)}</strong>
-            </p>
             
             <div class="row text-muted small">
               <div class="col-md-6">
@@ -752,8 +731,6 @@ function saveNewOperativeNote() {
   
   // Get form data
   const formData = {
-    patient_first_name: document.getElementById('patientFirstName').value,
-    patient_last_name: document.getElementById('patientLastName').value,
     operation_datetime_start: document.getElementById('startDateTime').value || null,
     operation_datetime_end: document.getElementById('endDateTime').value || null,
     title: document.getElementById('title').value,

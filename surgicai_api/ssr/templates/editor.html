@@ -581,10 +581,7 @@
     
     <div class="patient-info" id="patientInfo">
       <div class="patient-info-grid">
-        <div class="info-field">
-          <div class="info-label">Patient Name</div>
-          <div class="info-value" id="patientName">-</div>
-        </div>
+
         <div class="info-field">
           <div class="info-label">Operation Start</div>
           <div class="info-value" id="operationStart">-</div>
@@ -603,20 +600,17 @@
     <div class="editor-toolbar">
       <div class="toolbar-group">
         <button class="btn btn-sm btn-outline-primary" onclick="editPatientInfo()">
-          <i class="bi bi-pencil me-1"></i>Edit Op Note Info
+          <i class="bi bi-pencil me-1"></i>Edit Operation Info
         </button>
         <button class="btn btn-sm btn-outline-primary" onclick="goToNextField()">
           <i class="bi bi-arrow-right-circle me-1"></i>Next Field
         </button>
         <div class="toolbar-separator"></div>
-        <button class="btn btn-sm btn-outline-primary" onclick="toggleHelpPanel()">
-          <i class="bi bi-question-circle me-1"></i>Help
-        </button>
-        <button class="btn btn-sm btn-outline-primary" onclick="">
-          <i class="bi bi-magic me-1"></i>Optimize Note
-        </button>
       </div>
       <div class="action-buttons">
+        <button class="btn btn-sm btn-primary" onclick="">
+          <i class="bi bi-magic me-1"></i>Optimize Note
+        </button>
         <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
           <i class="bi bi-save me-1"></i>Save
         </button>
@@ -644,25 +638,11 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Edit Patient Information</h5>
+        <h5 class="modal-title">Edit Operation Information</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="patientForm">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Patient First Name</label>
-                <input type="text" class="form-control" id="modalPatientFirstName" name="patient_first_name" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Patient Last Name</label>
-                <input type="text" class="form-control" id="modalPatientLastName" name="patient_last_name" required>
-              </div>
-            </div>
-          </div>
           <div class="row">
             <div class="col-md-6">
               <div class="mb-3">
@@ -775,7 +755,7 @@
       </div>
       <div class="help-section-content">
         <p>The editor saves your work automatically every 30 seconds when changes are detected.</p>
-        <p>Click "Edit Op Note Info" to update patient information, operation dates, and other metadata.</p>
+        <p>Click "Edit Operation Info" to update operation dates and other metadata.</p>
         <p>Template fields (***) are automatically highlighted to help you identify fillable areas.</p>
       </div>
     </div>
@@ -930,12 +910,6 @@
         hour12: true
       }) : 'Never';
     document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
-    
-    // Update patient info
-    const patientName = note.patient_first_name && note.patient_last_name ? 
-      `${note.patient_first_name} ${note.patient_last_name}` : 
-      '-';
-    document.getElementById('patientName').textContent = patientName;
     
     // Format dates for display
     const formatDate = (dateStr) => {
@@ -1188,9 +1162,7 @@
         minute: '2-digit',
         hour12: true
       });
-      document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;
-      
-      showToast('Document saved successfully', 'success');
+      document.getElementById('lastUpdated').textContent = 'Last updated: ' + lastUpdated;      
     })
     .catch(error => {
       console.error('Error saving document:', error);
@@ -1201,10 +1173,6 @@
   
   function editPatientInfo() {
     if (!currentNote) return;
-    
-    // Populate modal with current data
-    document.getElementById('modalPatientFirstName').value = currentNote.patient_first_name || '';
-    document.getElementById('modalPatientLastName').value = currentNote.patient_last_name || '';
     
     // Format dates for datetime-local inputs
     const formatForInput = (dateStr) => {
@@ -1238,8 +1206,6 @@
     
     // Convert datetime-local values to proper format for API
     const updateData = {
-      patient_first_name: formData.get('patient_first_name') || null,
-      patient_last_name: formData.get('patient_last_name') || null,
       operation_datetime_start: formData.get('operation_datetime_start') || null,
       operation_datetime_end: formData.get('operation_datetime_end') || null
     };
@@ -1263,12 +1229,6 @@
     .then(data => {
       console.log('Patient info saved:', data);
       currentNote = data;
-      
-      // Update patient info display
-      const patientName = data.patient_first_name && data.patient_last_name ? 
-        `${data.patient_first_name} ${data.patient_last_name}` : 
-        '-';
-      document.getElementById('patientName').textContent = patientName;
       
       const formatDate = (dateStr) => {
         if (!dateStr) return '-';
@@ -1301,11 +1261,11 @@
       const modal = bootstrap.Modal.getInstance(document.getElementById('patientModal'));
       modal.hide();
       
-      showToast('Patient information updated successfully', 'success');
+      showToast('Operation information updated successfully', 'success');
     })
     .catch(error => {
       console.error('Error saving patient info:', error);
-      showToast('Error saving patient information: ' + error.message, 'danger');
+      showToast('Error saving operation information: ' + error.message, 'danger');
     });
   }
   

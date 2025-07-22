@@ -1,4 +1,7 @@
-NAME: ***
+PATIENT NAME: ***
+
+SURGEON: ***
+
 DATE: ***
 
 PREOPERATIVE DIAGNOSIS: ***

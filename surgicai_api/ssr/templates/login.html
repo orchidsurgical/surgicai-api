@@ -4,25 +4,31 @@
 
 {% block head %}
 <style>
+  /* Remove body margins/padding that create white boundaries */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure main container takes full width */
+  .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
   .login-container {
-    min-height: 100vh;
+    min-height: calc(100vh - 60px);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .login-container::before {
-    content: '';
+    background: #87ceeb;
     position: absolute;
-    top: 0;
+    top: 60px;
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-    pointer-events: none;
+    margin: 0;
+    padding: 2rem 0;
   }
   
   .login-card {
@@ -153,45 +159,6 @@
     font-size: 0.9rem;
   }
   
-  .floating-shapes {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  
-  .floating-shapes::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    left: 10%;
-    width: 200px;
-    height: 200px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .floating-shapes::after {
-    content: '';
-    position: absolute;
-    bottom: 10%;
-    right: 10%;
-    width: 150px;
-    height: 150px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 50%;
-    animation: float 8s ease-in-out infinite reverse;
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-  
   .input-icon {
     position: absolute;
     right: 1rem;
@@ -279,8 +246,6 @@
 
 {% block content %}
 <div class="login-container">
-  <div class="floating-shapes"></div>
-  
   <div class="login-card">
     <div class="login-logo">
       <i class="bi bi-file-medical"></i>

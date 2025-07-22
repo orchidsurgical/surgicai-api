@@ -17,6 +17,7 @@ class Config:
     AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY", default="")
     AWS_REGION = env.str("AWS_REGION", default="us-east-1")
     AWS_DEFAULT_REGION = env.str("AWS_DEFAULT_REGION", default="us-east-1")
+    TRANSCRIBE_ROLE_ARN = env.str("TRANSCRIBE_ROLE_ARN", default="")
 
     EMAIL_HANDLER_CLASS = env.str("EMAIL_HANDLER_CLASS", default=None)
     EMAIL_QUEUE_URL = env.str("EMAIL_QUEUE_URL", default=None)

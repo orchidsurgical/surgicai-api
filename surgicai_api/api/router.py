@@ -10,6 +10,7 @@ from surgicai_api.api.login import LoginResource, LogoutResource
 from surgicai_api.api.me import MeResource
 from surgicai_api.api.opnote import OpNoteListResource, OpNoteResource
 from surgicai_api.api.template import TemplateListResource, TemplateResource
+from surgicai_api.api.transcribe import TranscribeCredentialsResource
 
 
 class RestfulApi(Api):
@@ -37,6 +38,9 @@ api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=Tru
 api.add_resource(TemplateListResource, "/template/", strict_slashes=True)
 api.add_resource(
     TemplateResource, "/template/<string:template_id>/", strict_slashes=True
+)
+api.add_resource(
+    TranscribeCredentialsResource, "/transcribe/credentials/", strict_slashes=True
 )
 
 # Admin resources

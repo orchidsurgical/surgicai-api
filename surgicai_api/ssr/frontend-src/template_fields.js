@@ -10,6 +10,7 @@ let slashMenuPosition = { x: 0, y: 0 };
 let slashMenuElement = null;
 let slashStartIndex = -1; // Track where the slash started
 let selectedMenuIndex = 0; // Track which menu item is selected
+let isApplyingStyling = false; // Flag to prevent infinite loops
 
 // AI Field options
 const AI_FIELD_OPTIONS = [
@@ -33,6 +34,11 @@ function initializeFields() {
 
     // Set up field event listeners
     setupFieldEventListeners();
+
+    // Apply initial field styling to any existing fields
+    setTimeout(() => {
+        applyFieldStyling();
+    }, 100);
 
     console.log('Fields functionality initialized successfully');
     console.log('Quill instance:', quill);
@@ -115,11 +121,27 @@ function removeField(fieldName) {
  * @returns {Array} Array of field objects with name and value
  */
 function getAllFields() {
-    // TODO: Implement logic to extract all fields from the editor
-    // - Parse editor content
-    // - Identify field markers
-    // - Return structured field data
-    return [];
+    if (!editorElement) return [];
+    
+    const fields = [];
+    const fieldComponents = editorElement.querySelectorAll('.field-component, .aifield-component');
+    
+    fieldComponents.forEach((component, index) => {
+        const fieldName = component.getAttribute('data-field-name');
+        const fieldText = component.getAttribute('data-field-text');
+        const isAIField = component.classList.contains('aifield-component');
+        
+        if (fieldName) {
+            fields.push({ 
+                name: fieldName, 
+                value: fieldText,
+                isAIField: isAIField,
+                element: component 
+            });
+        }
+    });
+    
+    return fields;
 }
 
 /**
@@ -145,15 +167,71 @@ function toggleFieldsHighlight() {
 }
 
 /**
+ * Get text content with fields in their proper format for API saving
+ * @returns {string} Text content with fields as [field: fieldname] format
+ */
+function getTextWithFields() {
+    const quill = currentQuillInstance;
+    if (!quill) return '';
+    
+    const editorElement = quill.container.querySelector('.ql-editor');
+    if (!editorElement) return quill.getText();
+    
+    // Clone the editor content to avoid modifying the original
+    const clonedEditor = editorElement.cloneNode(true);
+    
+    // Find all field components in the cloned content
+    const fieldComponents = clonedEditor.querySelectorAll('.field-component, .aifield-component');
+    
+    // Replace each field component with its original field text
+    fieldComponents.forEach(component => {
+        const fieldText = component.getAttribute('data-field-text');
+        if (fieldText) {
+            // Create a text node with the original field format
+            const textNode = document.createTextNode(fieldText);
+            component.parentNode.replaceChild(textNode, component);
+        }
+    });
+    
+    // Get text while preserving line breaks by using innerHTML and converting <br> and <p> tags
+    let html = clonedEditor.innerHTML;
+    
+    // Convert HTML line breaks to actual newlines
+    html = html.replace(/<br\s*\/?>/gi, '\n');
+    html = html.replace(/<\/p>/gi, '\n');
+    html = html.replace(/<p[^>]*>/gi, '');
+    html = html.replace(/<div[^>]*>/gi, '');
+    html = html.replace(/<\/div>/gi, '\n');
+    
+    // Create a temporary element to decode HTML entities and get clean text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Get the text content which now preserves the line structure
+    let text = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Clean up multiple consecutive newlines but preserve intentional line breaks
+    text = text.replace(/\n\s*\n\s*\n/g, '\n\n'); // Max of double newlines
+    text = text.trim(); // Remove leading/trailing whitespace
+    
+    return text;
+}
+
+/**
  * Export editor content with field data
  * @returns {Object} Object containing formatted content and field metadata
  */
 function exportWithFields() {
-    // TODO: Implement export functionality
-    // - Get editor content
-    // - Extract field data
-    // - Return structured export data
-    return { content: '', fields: [] };
+    const quill = currentQuillInstance;
+    if (!quill) return { content: '', fields: [] };
+    
+    const content = getTextWithFields();
+    const fields = getAllFields();
+    
+    return { 
+        content: content, 
+        fields: fields 
+    };
 }
 
 /**
@@ -187,8 +265,16 @@ function setupFieldEventListeners() {
     // Listen for text changes to detect slash
     quill.on('text-change', function(delta, oldDelta, source) {
         if (source !== 'user') return;
+        if (isApplyingStyling) return; // Prevent infinite loops
         
         console.log('Text change detected:', delta);
+        
+        // Apply field styling after any text change (with debounce)
+        clearTimeout(window.fieldStylingTimeout);
+        window.fieldStylingTimeout = setTimeout(() => {
+            console.log('Debounced field styling triggered');
+            applyFieldStyling();
+        }, 500);
         
         // Check if the last operation was inserting a slash
         const ops = delta.ops;
@@ -307,29 +393,93 @@ function handleFieldBackspace(e) {
     const cursorIndex = selection.index;
     if (cursorIndex === 0) return; // Can't delete before the start
     
-    // Look backwards from cursor to find if we're right after a field
-    const textBeforeCursor = quill.getText(0, cursorIndex);
+    // Check if cursor is right after a field component
+    const editorElement = quill.container.querySelector('.ql-editor');
+    if (!editorElement) return;
     
-    // Regex to match field patterns at the end of text: [field: something] or [aifield: something]
-    const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]$/;
-    const match = textBeforeCursor.match(fieldRegex);
+    // Get the DOM range at cursor position
+    const bounds = quill.getBounds(cursorIndex - 1, 1);
+    const elementAtCursor = document.elementFromPoint(
+        editorElement.getBoundingClientRect().left + bounds.left + bounds.width,
+        editorElement.getBoundingClientRect().top + bounds.top + bounds.height / 2
+    );
     
-    if (match) {
-        // We found a field right before the cursor
-        const fieldText = match[0]; // The entire field text like "[field: patient_name]"
-        const fieldStart = cursorIndex - fieldText.length;
+    // Check if the element or its parent is a field component
+    let fieldComponent = null;
+    if (elementAtCursor) {
+        fieldComponent = elementAtCursor.closest('.field-component, .aifield-component');
         
-        console.log('Deleting field:', fieldText, 'from position', fieldStart);
+        // If not found, also check the previous sibling
+        if (!fieldComponent && elementAtCursor.previousSibling) {
+            if (elementAtCursor.previousSibling.classList && 
+                (elementAtCursor.previousSibling.classList.contains('field-component') ||
+                 elementAtCursor.previousSibling.classList.contains('aifield-component'))) {
+                fieldComponent = elementAtCursor.previousSibling;
+            }
+        }
+    }
+    
+    // Fallback: Look backwards from cursor to find if we're right after a field pattern
+    if (!fieldComponent) {
+        const textBeforeCursor = quill.getText(0, cursorIndex);
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]$/;
+        const match = textBeforeCursor.match(fieldRegex);
+        
+        if (match) {
+            // We found a field right before the cursor
+            const fieldText = match[0]; // The entire field text like "[field: patient_name]"
+            const fieldStart = cursorIndex - fieldText.length;
+            
+            console.log('Deleting field (text pattern):', fieldText, 'from position', fieldStart);
+            
+            // Prevent default backspace behavior
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Delete the entire field
+            quill.deleteText(fieldStart, fieldText.length, 'user');
+            
+            // Set cursor position after deletion
+            quill.setSelection(fieldStart, 0, 'user');
+            
+            // Re-apply styling after deletion
+            setTimeout(() => {
+                applyFieldStyling();
+            }, 10);
+            
+            return;
+        }
+    }
+    
+    // If we found a field component, delete it
+    if (fieldComponent) {
+        console.log('Deleting field component:', fieldComponent);
         
         // Prevent default backspace behavior
         e.preventDefault();
         e.stopPropagation();
         
-        // Delete the entire field
-        quill.deleteText(fieldStart, fieldText.length, 'user');
+        // Get the field text to calculate position
+        const fieldText = fieldComponent.getAttribute('data-field-text');
+        if (fieldText) {
+            // Find the position of this field in the Quill content
+            const allText = quill.getText();
+            const fieldIndex = allText.indexOf(fieldText.replace(/\[field:\s*/, '[field: '));
+            
+            if (fieldIndex !== -1) {
+                // Delete the field text from Quill
+                quill.deleteText(fieldIndex, fieldText.length, 'user');
+                quill.setSelection(fieldIndex, 0, 'user');
+            }
+        }
         
-        // Set cursor position after deletion
-        quill.setSelection(fieldStart, 0, 'user');
+        // Remove the component from DOM
+        fieldComponent.remove();
+        
+        // Re-apply styling after deletion
+        setTimeout(() => {
+            applyFieldStyling();
+        }, 10);
     }
 }
 
@@ -593,6 +743,195 @@ function insertFieldIntoDocument(fieldId, isAIField = false) {
         quill.insertText(length - 1, fieldText, 'silent');
         quill.setSelection(length - 1 + fieldText.length, 0, 'silent');
     }
+    
+    // Apply field styling after insertion
+    setTimeout(() => {
+        console.log('Applying field styling after insertion');
+        applyFieldStyling();
+    }, 50);
+}
+
+/**
+ * Apply visual styling to fields in the editor
+ */
+function applyFieldStyling() {
+    const quill = currentQuillInstance;
+    if (!quill) return;
+    
+    // Prevent infinite loops
+    if (isApplyingStyling) {
+        console.log('Already applying styling, skipping...');
+        return;
+    }
+    
+    isApplyingStyling = true;
+    console.log('Applying field styling...');
+    
+    const editorElement = quill.container.querySelector('.ql-editor');
+    if (!editorElement) {
+        console.log('No editor element found');
+        isApplyingStyling = false;
+        return;
+    }
+    
+    // Store cursor position and focus state with more precision
+    const selection = quill.getSelection();
+    const hadFocus = quill.hasFocus();
+    let savedRange = null;
+    
+    // Save the actual DOM selection for more accurate cursor restoration
+    if (selection && hadFocus) {
+        const domSelection = window.getSelection();
+        if (domSelection.rangeCount > 0) {
+            savedRange = domSelection.getRangeAt(0).cloneRange();
+        }
+    }
+    
+    // Find all text nodes that contain field patterns
+    const walker = document.createTreeWalker(
+        editorElement,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+    
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+        // Check if this text node contains a field pattern (regular or AI field)
+        if (/\[(ai)?field:\s*[^\]]+\]/.test(node.textContent)) {
+            textNodes.push(node);
+        }
+    }
+    
+    // Only proceed if we actually found fields to process
+    if (textNodes.length === 0) {
+        isApplyingStyling = false;
+        return;
+    }
+    
+    // Process each text node that contains field patterns
+    textNodes.forEach(textNode => {
+        const text = textNode.textContent;
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]/g;
+        let match;
+        const replacements = [];
+        
+        while ((match = fieldRegex.exec(text)) !== null) {
+            replacements.push({
+                fullMatch: match[0],
+                fieldName: match[2].trim(),
+                isAIField: match[1] === 'ai',
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
+            });
+        }
+        
+        // If we found field patterns in this text node, replace them
+        if (replacements.length > 0) {
+            const parent = textNode.parentNode;
+            let currentText = text;
+            let offset = 0;
+            
+            replacements.forEach(replacement => {
+                // Create a temporary container to hold the new HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = replacement.isAIField 
+                    ? createAIFieldComponentHtml(replacement.fieldName)
+                    : createFieldComponentHtml(replacement.fieldName);
+                const fieldComponent = tempDiv.firstChild;
+                
+                // Split the text node at the field boundaries
+                const beforeText = currentText.substring(0, replacement.startIndex - offset);
+                const afterText = currentText.substring(replacement.endIndex - offset);
+                
+                // Create new text nodes if needed
+                if (beforeText) {
+                    const beforeNode = document.createTextNode(beforeText);
+                    parent.insertBefore(beforeNode, textNode);
+                }
+                
+                // Insert the field component
+                parent.insertBefore(fieldComponent, textNode);
+                
+                // Add a zero-width space after the field component to prevent style inheritance
+                if (afterText === '' || afterText.charAt(0) !== ' ') {
+                    const spacerNode = document.createTextNode('\u200B'); // Zero-width space
+                    parent.insertBefore(spacerNode, textNode);
+                }
+                
+                // Update the remaining text
+                currentText = afterText;
+                offset = replacement.endIndex;
+            });
+            
+            // Update or remove the original text node
+            if (currentText) {
+                textNode.textContent = currentText;
+            } else {
+                parent.removeChild(textNode);
+            }
+        }
+    });
+    
+    // Restore focus and cursor position using the most reliable method
+    if (hadFocus) {
+        setTimeout(() => {
+            try {
+                quill.focus();
+                
+                // Try to restore the DOM selection first (most accurate)
+                if (savedRange) {
+                    const domSelection = window.getSelection();
+                    domSelection.removeAllRanges();
+                    domSelection.addRange(savedRange);
+                } else if (selection) {
+                    // Fallback to Quill's selection API
+                    quill.setSelection(selection.index, selection.length, 'silent');
+                }
+            } catch (e) {
+                console.log('Could not restore cursor position:', e);
+                // Final fallback: just focus the editor
+                quill.focus();
+            }
+        }, 1); // Reduced timeout for faster cursor restoration
+    }
+    
+    // Reset the flag after a brief delay to allow Quill to process
+    setTimeout(() => {
+        isApplyingStyling = false;
+        console.log('Styling application complete');
+    }, 10);
+}
+
+/**
+ * Create HTML for a field component
+ */
+function createFieldComponentHtml(fieldName) {
+    const componentId = `field-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const html = `<span class="field-component" data-field-text="[field: ${fieldName}]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #fefce8; border: 1px solid #eab308; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
+        <span class="field-label" style="display: block; font-size: 9px; color: #a16207; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">Field</span>
+        <span class="field-content" style="display: block; font-size: 12px; color: #92400e; font-weight: 500; line-height: 1;">${fieldName}</span>
+    </span>`;
+    
+    console.log('Generated field HTML:', html);
+    return html;
+}
+
+/**
+ * Create HTML for an AI field component
+ */
+function createAIFieldComponentHtml(fieldName) {
+    const componentId = `aifield-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const html = `<span class="aifield-component" data-field-text="[aifield: ${fieldName}]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
+        <span class="field-label" style="display: block; font-size: 9px; color: #1d4ed8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">AI Field</span>
+        <span class="field-content" style="display: block; font-size: 12px; color: #1e40af; font-weight: 500; line-height: 1;">${fieldName}</span>
+    </span>`;
+    
+    console.log('Generated AI field HTML:', html);
+    return html;
 }
 
 /**
@@ -884,11 +1223,18 @@ function cleanupFields() {
     const modals = document.querySelectorAll('.field-modal');
     modals.forEach(modal => modal.remove());
     
+    // Clear any pending styling timeouts
+    if (window.fieldStylingTimeout) {
+        clearTimeout(window.fieldStylingTimeout);
+        window.fieldStylingTimeout = null;
+    }
+    
     // Reset state variables
     isFieldsActive = false;
     currentQuillInstance = null;
     slashMenuVisible = false;
     slashMenuElement = null;
+    isApplyingStyling = false;
     fieldComponents.clear();
 }
 
@@ -914,6 +1260,7 @@ window.insertField = insertField;
 window.updateField = updateField;
 window.removeField = removeField;
 window.getAllFields = getAllFields;
+window.getTextWithFields = getTextWithFields;
 window.validateFields = validateFields;
 window.toggleFieldsHighlight = toggleFieldsHighlight;
 window.exportWithFields = exportWithFields;

@@ -6,7 +6,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         transcribe: resolve(__dirname, 'frontend-src/transcribe.js'),
-        fields: resolve(__dirname, 'frontend-src/fields.js')
+        template_fields: resolve(__dirname, 'frontend-src/template_fields.js')
       },
       output: {
         entryFileNames: '[name].js',

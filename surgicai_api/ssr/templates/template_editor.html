@@ -483,11 +483,11 @@
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    padding: 0.5rem;
+    padding: 0.125rem 0.25rem;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 0.85rem;
-    margin: 0.5rem 0;
-    display: block;
+    color: #e83e8c;
+    display: inline;
   }
   
   .help-example {
@@ -510,6 +510,21 @@
     font-size: 0.85rem;
     color: #333;
     white-space: pre-wrap;
+  }
+  
+  .help-section-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .help-section-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .help-section-content li {
+    margin: 0.25rem 0;
+    line-height: 1.5;
   }
   
   .keyboard-shortcut {
@@ -611,6 +626,100 @@
     background-color: #e7f3ff;
     border-color: #b3d9ff;
     color: #0c5460;
+  }
+
+  /* Field Component Styles */
+  .field-component {
+    display: inline-block;
+    position: relative;
+    background: #fefce8;
+    border: 1px solid #eab308;
+    border-radius: 4px;
+    padding: 2px 6px 4px 6px;
+    margin: 0 2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: default;
+    vertical-align: baseline;
+    line-height: 1.2;
+    isolation: isolate;
+  }
+  
+  .field-component .field-label {
+    display: block;
+    font-size: 9px;
+    color: #a16207;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+  
+  .field-component .field-content {
+    display: block;
+    font-size: 12px;
+    color: #92400e;
+    font-weight: 500;
+    line-height: 1;
+  }
+  
+  .field-component:hover {
+    background: #fef3c7;
+    border-color: #d97706;
+  }
+  
+  /* AI Field Component Styles */
+  .aifield-component {
+    display: inline-block;
+    position: relative;
+    background: #dbeafe;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    padding: 2px 6px 4px 6px;
+    margin: 0 2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: default;
+    vertical-align: baseline;
+    line-height: 1.2;
+    isolation: isolate;
+  }
+  
+  .aifield-component .field-label {
+    display: block;
+    font-size: 9px;
+    color: #1d4ed8;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+  
+  .aifield-component .field-content {
+    display: block;
+    font-size: 12px;
+    color: #1e40af;
+    font-weight: 500;
+    line-height: 1;
+  }
+  
+  .aifield-component:hover {
+    background: #bfdbfe;
+    border-color: #2563eb;
+  }
+  
+  /* Make sure field components don't break layout and don't affect adjacent text */
+  .ql-editor .field-component,
+  .ql-editor .aifield-component {
+    white-space: nowrap;
+  }
+  
+  /* Ensure text after fields inherits proper styling */
+  .ql-editor .field-component + *,
+  .ql-editor .aifield-component + * {
+    color: inherit;
+    background: inherit;
+    font-family: inherit;
   }
 </style>
 {% endblock %}
@@ -718,6 +827,129 @@
             <span class="shortcut-key">S</span>
           </div>
         </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Open slash menu</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">/</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Navigate menu items</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">↑</span>
+            <span class="shortcut-key">↓</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Select menu item</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">Enter</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Close menu</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">Esc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">
+        <i class="bi bi-slash-circle"></i>
+        Slash Menu
+      </div>
+      <div class="help-section-content">
+        <p>The slash menu provides quick access to insert fields and other components. Simply type <code class="help-code">/</code> anywhere in your template to open the menu.</p>
+        
+        <div class="help-example">
+          <div class="help-example-title">Available Options:</div>
+          <div class="help-example-content">• 📝 Field - Create a custom field
+• 🤖 AI Field - Insert a predefined AI field</div>
+        </div>
+        
+        <p><strong>Usage:</strong></p>
+        <ol>
+          <li>Type <code class="help-code">/</code> in the editor</li>
+          <li>Use arrow keys or mouse to navigate options</li>
+          <li>Press Enter or click to select</li>
+          <li>Type to filter options (e.g., <code class="help-code">/field</code>)</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">
+        <i class="bi bi-input-cursor-text"></i>
+        Template Fields
+      </div>
+      <div class="help-section-content">
+        <p>Fields are placeholders that can be filled in when creating operative notes from templates. There are two types of fields:</p>
+        
+        <div class="help-example">
+          <div class="help-example-title">Regular Fields (Yellow):</div>
+          <div class="help-example-content">Custom fields you create for any purpose.
+Examples: Patient Name, Surgeon Name, Procedure</div>
+        </div>
+        
+        <div class="help-example">
+          <div class="help-example-title">AI Fields (Blue):</div>
+          <div class="help-example-content">Predefined fields that can be auto-filled by AI.
+Examples: Postoperative Diagnosis, Procedures</div>
+        </div>
+        
+        <p><strong>Creating Fields:</strong></p>
+        <ol>
+          <li>Type <code class="help-code">/</code> to open the slash menu</li>
+          <li>Select "Field" for custom fields or "AI Field" for predefined options</li>
+          <li>Enter a descriptive name for your field</li>
+          <li>The field will appear highlighted in your template</li>
+        </ol>
+        
+        <p><strong>Field Behavior:</strong></p>
+        <ul>
+          <li>Fields are saved in the format <code class="help-code">[field: name]</code> or <code class="help-code">[aifield: name]</code></li>
+          <li>Use Backspace to delete entire fields</li>
+          <li>Arrow keys navigate around fields as single units</li>
+          <li>Fields maintain their formatting when templates are used</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">
+        <i class="bi bi-lightbulb"></i>
+        Tips & Best Practices
+      </div>
+      <div class="help-section-content">
+        <p><strong>Template Design:</strong></p>
+        <ul>
+          <li>Use descriptive field names (e.g., "Patient Name" not "Name")</li>
+          <li>Place fields where information will be filled in</li>
+          <li>Use AI fields for content that can be auto-generated</li>
+          <li>Keep static text separate from dynamic fields</li>
+        </ul>
+        
+        <p><strong>Field Naming:</strong></p>
+        <ul>
+          <li>Use clear, specific names</li>
+          <li>Avoid abbreviations when possible</li>
+          <li>Consider how others will understand the field purpose</li>
+        </ul>
+        
+        <div class="help-example">
+          <div class="help-example-title">Example Template Structure:</div>
+          <div class="help-example-content">PATIENT: [field: Patient Name]
+DATE: [field: Surgery Date]
+SURGEON: [field: Primary Surgeon]
+
+PROCEDURE:
+[aifield: Procedures]
+
+DIAGNOSIS:
+[aifield: Postoperative Diagnosis]</div>
+        </div>
       </div>
     </div>
   </div>
@@ -776,7 +1008,7 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/fields.js') }}"></script>
+<script src="{{ url_for('static', filename='js/template_fields.js') }}"></script>
 <script>
   // Global variables
   let quill;
@@ -935,7 +1167,8 @@
     let content = '';
     
     if (quill) {
-      content = quill.getText(); // Get plain text instead of HTML
+      // Use our custom function to get text with fields in proper format
+      content = window.getTextWithFields ? window.getTextWithFields() : quill.getText();
     } else {
       // Fallback to get content from editor element
       const editorElement = document.getElementById('editor');
@@ -1020,7 +1253,7 @@
     
     let content = '';
     if (quill) {
-      content = quill.getText().trim();
+      content = window.getTextWithFields ? window.getTextWithFields().trim() : quill.getText().trim();
     }
     
     const previewWindow = window.open('', '_blank', 'width=800,height=600');
@@ -1084,7 +1317,7 @@
     // Get current template content
     let templateContent = '';
     if (quill) {
-      templateContent = quill.getText();
+      templateContent = window.getTextWithFields ? window.getTextWithFields() : quill.getText();
     }
     
     // Prepare the request data

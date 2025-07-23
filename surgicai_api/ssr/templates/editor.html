@@ -277,6 +277,12 @@
     100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
   }
   
+  @keyframes recording-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+  }
+  
   .action-buttons {
     display: flex;
     gap: 1rem;
@@ -292,6 +298,13 @@
   .btn-outline-primary:hover {
     background: var(--primary-color);
     color: white;
+  }
+
+  .btn-dictating {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+    animation: recording-pulse 1.5s infinite;
   }
   
   .loading-overlay {
@@ -602,9 +615,14 @@
         <button class="btn btn-sm btn-outline-primary" onclick="editPatientInfo()">
           <i class="bi bi-pencil me-1"></i>Edit Operation Info
         </button>
+      </div>
+      <div class="toolbar-separator"></div>
+      <div class="toolbar-group">
         <button class="btn btn-sm btn-outline-primary" onclick="goToNextField()">
           <i class="bi bi-arrow-right-circle me-1"></i>Next Field
         </button>
+        <button class="btn btn-sm btn-outline-primary" id="dictationButton" onclick="startDictation()">
+          <i class="bi bi-mic me-1"></i>Start Dictation
       </div>
       <div class="action-buttons">
         <button class="btn btn-sm btn-primary" onclick="">
@@ -744,6 +762,20 @@
             <span class="shortcut-key">Tab</span>
           </div>
         </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Toggle Dictation</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">Ctrl</span>
+            <span class="shortcut-key">D</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Toggle Dictation (Mac)</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">⌘</span>
+            <span class="shortcut-key">D</span>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -768,7 +800,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/transcribe.js') }}"></script>
 <script>
   // Global variables
   let quill;
@@ -1332,6 +1365,13 @@
       if (e.key === 'Tab') {
         e.preventDefault(); // Prevent default tab behavior
         goToNextField();
+      }
+
+      // Check for Ctrl+D (Windows/Linux) or Cmd+D (Mac) to start/stop dictation
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault(); // Prevent default browser behavior
+        console.log('Dictation shortcut detected');
+        toggleDictation();
       }
     });
   }

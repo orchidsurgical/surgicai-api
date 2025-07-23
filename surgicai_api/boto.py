@@ -31,6 +31,14 @@ class Boto:
                 config=current_app.config.get("AWS_CLIENT_CONFIG"),
             )
 
+        @property
+        def sts(self):
+            return boto3.client(
+                "sts",
+                endpoint_url=current_app.config.get("STS_ENDPOINT"),
+                config=current_app.config.get("AWS_CLIENT_CONFIG"),
+            )
+
     class _resources:
         @property
         def s3(self):

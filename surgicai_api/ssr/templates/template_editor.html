@@ -828,9 +828,6 @@
           </ul>
         </div>
         <div class="toolbar-separator"></div>
-        <button class="btn btn-sm btn-outline-primary" onclick="previewTemplate()">
-          <i class="bi bi-eye me-1"></i>Preview Template
-        </button>
         <button class="btn btn-sm btn-outline-primary" onclick="createOpNoteFromTemplate()">
           <i class="bi bi-file-earmark-plus me-1"></i>Create OpNote from Template
         </button>
@@ -1337,49 +1334,6 @@ DIAGNOSIS:
         showToast('AI field insertion feature is not available', 'warning');
       }
     }
-  }
-  
-  function previewTemplate() {
-    if (!currentTemplate) return;
-    
-    let content = '';
-    if (quill) {
-      content = window.getTextWithFields ? window.getTextWithFields().trim() : quill.getText().trim();
-    }
-    
-    const previewWindow = window.open('', '_blank', 'width=800,height=600');
-    previewWindow.document.write(`
-      <html>
-        <head>
-          <title>Template Preview - ${currentTemplate.name}</title>
-          <style>
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              font-size: 12pt; 
-              line-height: 1.6; 
-              margin: 2rem; 
-              color: #333;
-            }
-            h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem; }
-            .template-info { 
-              background: #f8f9fa; 
-              padding: 1rem; 
-              border-radius: 8px; 
-              margin-bottom: 2rem; 
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Template Preview: ${escapeHtml(currentTemplate.name)}</h1>
-          <div class="template-info">
-            <p><strong>Template Name:</strong> ${escapeHtml(currentTemplate.name)}</p>
-            <p><strong>Default Title:</strong> ${escapeHtml(currentTemplate.title || 'None')}</p>
-          </div>
-          <div style="white-space: pre-wrap; line-height: 1.8;">${escapeHtml(content)}</div>
-        </body>
-      </html>
-    `);
-    previewWindow.document.close();
   }
   
   function createOpNoteFromTemplate() {

@@ -197,31 +197,6 @@
     min-height: 456px;
   }
   
-  /* Template field highlighting in editor */
-  .ql-editor .ql-background-#fff3cd {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-    border: 2px solid #ffc107 !important;
-    border-radius: 4px !important;
-    padding: 2px 4px !important;
-    font-weight: 600 !important;
-    display: inline-block !important;
-    margin: 0 1px !important;
-    position: relative !important;
-    animation: highlight-pulse 2s infinite !important;
-  }
-  
-  .ql-editor span[style*="background: rgb(255, 243, 205)"] {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-    border: 2px solid #ffc107 !important;
-    border-radius: 4px !important;
-    padding: 2px 4px !important;
-    font-weight: 600 !important;
-    display: inline-block !important;
-    margin: 0 1px !important;
-    position: relative !important;
-    animation: highlight-pulse 2s infinite !important;
-  }
-  
   .ql-editor.ql-blank::before {
     left: 2rem;
     right: 2rem;
@@ -235,66 +210,6 @@
   
   .ql-toolbar .ql-formats {
     margin-right: 1rem;
-  }
-  
-  /* Template field highlighting */
-  .template-field {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 2px solid #ffc107;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-weight: 600;
-    color: #856404;
-    position: relative;
-    display: inline-block;
-    animation: highlight-pulse 2s infinite;
-  }
-  
-  .template-field::before {
-    content: "📝";
-    font-size: 0.8em;
-    margin-right: 2px;
-  }
-  
-  .template-field-overlay {
-    animation: fadeInUp 0.3s ease;
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes highlight-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
-  }
-  
-  /* Field count indicator */
-  .field-count-indicator {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0066cc;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 1000;
-    display: none;
-  }
-  
-  .field-count-indicator.show {
-    display: block;
   }
   
   .template-fields-help {
@@ -734,21 +649,11 @@
           <div class="info-label">Last Updated</div>
           <div class="info-value" id="lastUpdatedField">-</div>
         </div>
-        <div class="info-field">
-          <div class="info-label">Template Fields</div>
-          <div class="info-value" id="fieldCount">
-            <span id="templateFieldsCount">0 fields detected</span>
-          </div>
-        </div>
       </div>
     </div>
     
     <div class="editor-toolbar">
       <div class="toolbar-group">
-        <button class="btn btn-sm btn-outline-primary" onclick="insertTemplateField()">
-          <i class="bi bi-plus-circle me-1"></i>Insert Field
-        </button>
-        <div class="toolbar-separator"></div>
         <button class="btn btn-sm btn-outline-primary" onclick="previewTemplate()">
           <i class="bi bi-eye me-1"></i>Preview Template
         </button>
@@ -779,10 +684,7 @@
   <span id="saveMessage">Saved</span>
 </div>
 
-<div class="field-count-indicator" id="fieldCountIndicator">
-  <i class="bi bi-file-earmark-text me-1"></i>
-  <span id="fieldCountText">0 template fields</span>
-</div>
+
 
 <!-- Help Panel -->
 <div class="help-panel" id="helpPanel">
@@ -796,33 +698,6 @@
   </div>
   
   <div class="help-panel-content">
-    <div class="help-section">
-      <div class="help-section-title">
-        <i class="bi bi-lightbulb"></i>
-        Template Fields
-      </div>
-      <div class="help-section-content">
-        <p>Use <code>***</code> to create template fields that will be replaced when creating operative notes.</p>
-        
-        <div class="help-example">
-          <div class="help-example-title">Example Template:</div>
-          <div class="help-example-content">Patient *** underwent *** procedure on ***.
-
-PROCEDURE: ***
-SURGEON: ***
-ANESTHESIA: ***
-
-FINDINGS:
-***
-
-PROCEDURE DETAILS:
-***</div>
-        </div>
-        
-        <p>Each <code>***</code> becomes a fillable field when creating an operative note from this template.</p>
-      </div>
-    </div>
-    
     <div class="help-section">
       <div class="help-section-title">
         <i class="bi bi-keyboard"></i>
@@ -900,7 +775,8 @@ PROCEDURE DETAILS:
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fields.js') }}"></script>
 <script>
   // Global variables
   let quill;
@@ -909,7 +785,6 @@ PROCEDURE DETAILS:
   let isLoading = false;
   let hasUnsavedChanges = false;
   let isInitialLoad = true; // Flag to prevent triggering unsaved changes during initial load
-  let templateFieldCount = 0; // Track number of template fields
   
   // Initialize the editor
   document.addEventListener('DOMContentLoaded', function() {
@@ -959,9 +834,6 @@ PROCEDURE DETAILS:
         if (source === 'user' && !isInitialLoad) {
           hasUnsavedChanges = true;
           updateSaveIndicator('modified');
-          // Detect template fields with a longer delay to allow typing to complete
-          clearTimeout(window.fieldDetectionTimeout);
-          window.fieldDetectionTimeout = setTimeout(detectAndHighlightTemplateFields, 500);
         }
       });
     } catch (error) {
@@ -1053,134 +925,7 @@ PROCEDURE DETAILS:
     // Reset initial load flag after template is fully populated
     setTimeout(() => {
       isInitialLoad = false;
-      // Detect and highlight fields after initial load
-      detectAndHighlightTemplateFields();
     }, 200); // Increased timeout to ensure content is set
-  }
-  
-  function detectAndHighlightTemplateFields() {
-    if (!quill) return;
-    
-    const text = quill.getText();
-    
-    // Find all *** patterns (just the three asterisks)
-    const fieldPattern = /\*\*\*/g;
-    let matches = [];
-    let match;
-    
-    while ((match = fieldPattern.exec(text)) !== null) {
-      matches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        text: match[0],
-        fieldName: `Field ${matches.length + 1}`
-      });
-    }
-    
-    // Update field count
-    templateFieldCount = matches.length;
-    updateFieldCountDisplay(matches);
-    
-    // Since we're in plain text mode, we'll use overlay indicators
-    highlightFieldsInEditor(matches);
-  }
-  
-  function highlightFieldsInEditor(matches) {
-    if (!quill || matches.length === 0) {
-      // Clear all formatting if no matches
-      if (quill) {
-        const fullRange = quill.getLength();
-        quill.removeFormat(0, fullRange, 'silent');
-      }
-      return;
-    }
-    
-    // Store current cursor position
-    const currentSelection = quill.getSelection();
-    
-    // Clear all formatting first
-    const fullRange = quill.getLength();
-    quill.removeFormat(0, fullRange, 'silent');
-    
-    // Apply highlighting to each *** field
-    matches.forEach((match, index) => {
-      try {
-        // Apply background color styling to the *** text
-        quill.formatText(match.start, match.end - match.start, {
-          'background': '#fff3cd',
-          'color': '#856404'
-        }, 'silent');
-      } catch (error) {
-        console.warn('Error highlighting field:', error);
-      }
-    });
-    
-    // Restore cursor position if it existed
-    if (currentSelection) {
-      quill.setSelection(currentSelection.index, currentSelection.length, 'silent');
-    }
-  }
-  
-  function updateFieldCountDisplay(matches = []) {
-    const fieldCountElement = document.getElementById('fieldCount');
-    const fieldCountIndicator = document.getElementById('fieldCountIndicator');
-    const templateFieldsCountElement = document.getElementById('templateFieldsCount');
-    const fieldCountTextElement = document.getElementById('fieldCountText');
-    
-    const count = matches.length;
-    const countText = count === 1 ? '1 field detected' : `${count} fields detected`;
-    const indicatorText = count === 1 ? '1 template field' : `${count} template fields`;
-    
-    if (templateFieldsCountElement) {
-      templateFieldsCountElement.textContent = countText;
-      if (count > 0) {
-        templateFieldsCountElement.style.color = '#0066cc';
-        templateFieldsCountElement.style.fontWeight = '600';
-      } else {
-        templateFieldsCountElement.style.color = '';
-        templateFieldsCountElement.style.fontWeight = '';
-      }
-    }
-    
-    if (fieldCountTextElement) {
-      fieldCountTextElement.textContent = indicatorText;
-    }
-    
-    if (fieldCountIndicator) {
-      if (count > 0) {
-        fieldCountIndicator.classList.add('show');
-      } else {
-        fieldCountIndicator.classList.remove('show');
-      }
-    }
-    
-    // Update the help section - no need to show field positions for unnamed fields
-    const existingFieldList = document.querySelector('.detected-fields');
-    if (existingFieldList) {
-      existingFieldList.remove();
-    }
-  }
-  
-  function insertTemplateField() {
-    if (!quill) return;
-    
-    const selection = quill.getSelection();
-    if (selection) {
-      // Insert *** at the current cursor position
-      quill.insertText(selection.index, '***', 'user');
-      // Move cursor after the inserted field
-      quill.setSelection(selection.index + 3);
-    } else {
-      // If no selection, insert at the end
-      const length = quill.getLength();
-      quill.insertText(length - 1, '***', 'user');
-      quill.setSelection(length + 2);
-    }
-    
-    // Trigger field detection after insertion
-    setTimeout(() => {
-      detectAndHighlightTemplateFields();
-    }, 100);
   }
   
   function saveTemplate() {
@@ -1278,11 +1023,6 @@ PROCEDURE DETAILS:
       content = quill.getText().trim();
     }
     
-    // Highlight template fields in the preview
-    const highlightedContent = content.replace(/\*\*\*/g, 
-      '<span style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 4px; padding: 2px 6px; font-weight: 600; color: #856404; display: inline-block; margin: 0 2px;">📝 <strong>***</strong> <em style="font-size: 0.8em; opacity: 0.7;">(field)</em></span>'
-    );
-    
     const previewWindow = window.open('', '_blank', 'width=800,height=600');
     previewWindow.document.write(`
       <html>
@@ -1303,17 +1043,6 @@ PROCEDURE DETAILS:
               border-radius: 8px; 
               margin-bottom: 2rem; 
             }
-            .template-fields-info {
-              background: #e7f3ff;
-              border: 1px solid #b3d9ff;
-              border-radius: 8px;
-              padding: 1rem;
-              margin-bottom: 1rem;
-            }
-            .template-fields-info h3 {
-              margin-top: 0;
-              color: #0066cc;
-            }
           </style>
         </head>
         <body>
@@ -1321,15 +1050,8 @@ PROCEDURE DETAILS:
           <div class="template-info">
             <p><strong>Template Name:</strong> ${escapeHtml(currentTemplate.name)}</p>
             <p><strong>Default Title:</strong> ${escapeHtml(currentTemplate.title || 'None')}</p>
-            <p><strong>Template Fields Found:</strong> ${templateFieldCount}</p>
           </div>
-          ${templateFieldCount > 0 ? `
-          <div class="template-fields-info">
-            <h3>📝 Template Fields</h3>
-            <p>The highlighted sections below are template fields that will be replaced with actual values when creating an operative note from this template.</p>
-          </div>
-          ` : ''}
-          <div style="white-space: pre-wrap; line-height: 1.8;">${highlightedContent}</div>
+          <div style="white-space: pre-wrap; line-height: 1.8;">${escapeHtml(content)}</div>
         </body>
       </html>
     `);

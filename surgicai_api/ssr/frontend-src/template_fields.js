@@ -1266,6 +1266,10 @@ window.toggleFieldsHighlight = toggleFieldsHighlight;
 window.exportWithFields = exportWithFields;
 window.importWithFields = importWithFields;
 window.handleFieldShortcuts = handleFieldShortcuts;
+window.showSlashMenu = showSlashMenu;
+window.showFieldNameInput = showFieldNameInput;
+window.showAIFieldOptions = showAIFieldOptions;
+window.insertFieldIntoDocument = insertFieldIntoDocument;
 window.setupFieldEventListeners = setupFieldEventListeners;
 window.cleanupFields = cleanupFields;
 

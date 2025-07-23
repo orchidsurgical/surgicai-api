@@ -178,6 +178,51 @@
     margin: 0 0.5rem;
   }
   
+  /* Insert Field Dropdown Styles */
+  .toolbar-group .dropdown-menu {
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    min-width: 220px;
+  }
+  
+  .toolbar-group .dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border: none;
+    background: none;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+  
+  .toolbar-group .dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+  
+  .toolbar-group .dropdown-item:focus {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    box-shadow: none;
+  }
+  
+  .toolbar-group .dropdown-item i {
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  
+  .toolbar-group .dropdown-item .text-muted {
+    font-size: 12px;
+    line-height: 1.3;
+    color: #6b7280 !important;
+    margin-top: 2px;
+  }
+  
   .editor-content {
     padding: 0;
     min-height: 500px;
@@ -763,6 +808,26 @@
     
     <div class="editor-toolbar">
       <div class="toolbar-group">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="insertFieldDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-plus-square me-1"></i>Insert Field
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="insertFieldDropdown">
+            <li>
+              <a class="dropdown-item" href="#" onclick="insertFieldType('field'); return false;">
+                <i class="bi bi-input-cursor-text me-2"></i>Field
+                <small class="text-muted d-block">Create a custom field</small>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" onclick="insertFieldType('aifield'); return false;">
+                <i class="bi bi-robot me-2"></i>AI Field
+                <small class="text-muted d-block">Insert a predefined AI field</small>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="toolbar-separator"></div>
         <button class="btn btn-sm btn-outline-primary" onclick="previewTemplate()">
           <i class="bi bi-eye me-1"></i>Preview Template
         </button>
@@ -828,7 +893,7 @@
           </div>
         </div>
         <div class="keyboard-shortcut">
-          <span class="shortcut-description">Open slash menu</span>
+          <span class="shortcut-description">Open field menu</span>
           <div class="shortcut-keys">
             <span class="shortcut-key">/</span>
           </div>
@@ -857,30 +922,6 @@
 
     <div class="help-section">
       <div class="help-section-title">
-        <i class="bi bi-slash-circle"></i>
-        Slash Menu
-      </div>
-      <div class="help-section-content">
-        <p>The slash menu provides quick access to insert fields and other components. Simply type <code class="help-code">/</code> anywhere in your template to open the menu.</p>
-        
-        <div class="help-example">
-          <div class="help-example-title">Available Options:</div>
-          <div class="help-example-content">• 📝 Field - Create a custom field
-• 🤖 AI Field - Insert a predefined AI field</div>
-        </div>
-        
-        <p><strong>Usage:</strong></p>
-        <ol>
-          <li>Type <code class="help-code">/</code> in the editor</li>
-          <li>Use arrow keys or mouse to navigate options</li>
-          <li>Press Enter or click to select</li>
-          <li>Type to filter options (e.g., <code class="help-code">/field</code>)</li>
-        </ol>
-      </div>
-    </div>
-
-    <div class="help-section">
-      <div class="help-section-title">
         <i class="bi bi-input-cursor-text"></i>
         Template Fields
       </div>
@@ -901,6 +942,7 @@ Examples: Postoperative Diagnosis, Procedures</div>
         
         <p><strong>Creating Fields:</strong></p>
         <ol>
+          <li>Click the "Insert Field" dropdown in the toolbar and select "Field" or "AI Field", or</li>
           <li>Type <code class="help-code">/</code> to open the slash menu</li>
           <li>Select "Field" for custom fields or "AI Field" for predefined options</li>
           <li>Enter a descriptive name for your field</li>
@@ -1060,6 +1102,14 @@ DIAGNOSIS:
       });
       
       console.log('Quill initialized successfully');
+      
+      // Initialize template fields functionality
+      if (typeof initializeFields === 'function') {
+        console.log('Initializing template fields functionality...');
+        initializeFields();
+      } else {
+        console.warn('Template fields functionality not available');
+      }
       
       // Listen for text changes
       quill.on('text-change', function(delta, oldDelta, source) {
@@ -1246,6 +1296,47 @@ DIAGNOSIS:
       updateSaveIndicator('error');
       showToast('Error saving template: ' + error.message, 'danger');
     });
+  }
+  
+  function insertFieldType(fieldType) {
+    if (!quill) {
+      console.warn('Quill editor not available');
+      showToast('Editor not ready. Please try again.', 'warning');
+      return;
+    }
+    
+    // Get current cursor position, or use the last known position, or default to 0
+    let selection = quill.getSelection();
+    if (!selection) {
+      // Try to get the last known cursor position or default to the end of the document
+      const length = quill.getLength();
+      const cursorPosition = length > 1 ? length - 1 : 0; // Position before the final newline or at start
+      selection = { index: cursorPosition, length: 0 };
+      
+      // Set the cursor position so the user knows where the field will be inserted
+      quill.setSelection(cursorPosition, 0);
+      console.log(`No active cursor, using position ${cursorPosition}`);
+    }
+    
+    console.log(`Inserting ${fieldType} at cursor position:`, selection.index);
+    
+    if (fieldType === 'field') {
+      // Show custom field name input modal (reuse from template_fields.js)
+      if (typeof showFieldNameInput === 'function') {
+        showFieldNameInput();
+      } else {
+        console.warn('showFieldNameInput function not available');
+        showToast('Field insertion feature is not available', 'warning');
+      }
+    } else if (fieldType === 'aifield') {
+      // Show AI field options modal (reuse from template_fields.js)
+      if (typeof showAIFieldOptions === 'function') {
+        showAIFieldOptions();
+      } else {
+        console.warn('showAIFieldOptions function not available');
+        showToast('AI field insertion feature is not available', 'warning');
+      }
+    }
   }
   
   function previewTemplate() {

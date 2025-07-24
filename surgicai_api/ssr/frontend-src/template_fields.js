@@ -79,19 +79,24 @@ function insertField(fieldName, fieldValue) {
     const quill = getQuillInstance();
     if (!quill) return;
 
-    // Determine field type
-    let fieldTag;
+    // Determine field type and create field text
+    let fieldText;
     if (fieldName === 'ai') {
-        fieldTag = `<aifield></aifield> `;
+        fieldText = `[aifield: ${fieldValue}][/aifield]`;
     } else {
-        fieldTag = `<field id='${fieldName}'></field> `;
+        fieldText = `[field: ${fieldName}][/field]`;
     }
 
     // Insert at current cursor position
     const range = quill.getSelection(true);
     let index = range ? range.index : quill.getLength();
-    quill.insertText(index, fieldTag, 'silent');
-    quill.setSelection(index + fieldTag.length, 0, 'silent');
+    quill.insertText(index, fieldText, 'silent');
+    quill.setSelection(index + fieldText.length, 0, 'silent');
+    
+    // Apply field styling after insertion
+    setTimeout(() => {
+        applyFieldStyling();
+    }, 50);
 }
 
 /**
@@ -346,7 +351,7 @@ function handleFieldArrowNavigation(e) {
     if (isLeftArrow && cursorIndex > 0) {
         // Left arrow: check if we're at the end of a field, jump to beginning
         const textBeforeCursor = quill.getText(0, cursorIndex);
-        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]$/;
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]\[\/\1?field\]$/;
         const match = textBeforeCursor.match(fieldRegex);
         
         if (match) {
@@ -363,7 +368,7 @@ function handleFieldArrowNavigation(e) {
     } else if (isRightArrow && cursorIndex < quill.getLength() - 1) {
         // Right arrow: check if we're at the beginning of a field, jump to end
         const textFromCursor = quill.getText(cursorIndex);
-        const fieldRegex = /^\[(ai)?field:\s*([^\]]+)\]/;
+        const fieldRegex = /^\[(ai)?field:\s*([^\]]+)\]\[\/\1?field\]/;
         const match = textFromCursor.match(fieldRegex);
         
         if (match) {
@@ -422,7 +427,7 @@ function handleFieldBackspace(e) {
     // Fallback: Look backwards from cursor to find if we're right after a field pattern
     if (!fieldComponent) {
         const textBeforeCursor = quill.getText(0, cursorIndex);
-        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]$/;
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]\[\/\1?field\]$/;
         const match = textBeforeCursor.match(fieldRegex);
         
         if (match) {
@@ -703,7 +708,7 @@ function insertFieldIntoDocument(fieldId, isAIField = false) {
     if (!quill) return;
 
     // Create the field text based on type
-    const fieldText = isAIField ? `[aifield: ${fieldId}]` : `[field: ${fieldId}]`;
+    const fieldText = isAIField ? `[aifield: ${fieldId}][/aifield]` : `[field: ${fieldId}][/field]`;
     
     // Get current selection
     const selection = quill.getSelection(true);
@@ -799,7 +804,7 @@ function applyFieldStyling() {
     let node;
     while (node = walker.nextNode()) {
         // Check if this text node contains a field pattern (regular or AI field)
-        if (/\[(ai)?field:\s*[^\]]+\]/.test(node.textContent)) {
+        if (/\[(ai)?field:\s*[^\]]+\]\[\/\1?field\]/.test(node.textContent)) {
             textNodes.push(node);
         }
     }
@@ -813,7 +818,7 @@ function applyFieldStyling() {
     // Process each text node that contains field patterns
     textNodes.forEach(textNode => {
         const text = textNode.textContent;
-        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]/g;
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]\[\/\1?field\]/g;
         let match;
         const replacements = [];
         
@@ -910,7 +915,7 @@ function applyFieldStyling() {
 function createFieldComponentHtml(fieldName) {
     const componentId = `field-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    const html = `<span class="field-component" data-field-text="[field: ${fieldName}]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #fefce8; border: 1px solid #eab308; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
+    const html = `<span class="field-component" data-field-text="[field: ${fieldName}][/field]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #fefce8; border: 1px solid #eab308; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
         <span class="field-label" style="display: block; font-size: 9px; color: #a16207; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">Field</span>
         <span class="field-content" style="display: block; font-size: 12px; color: #92400e; font-weight: 500; line-height: 1;">${fieldName}</span>
     </span>`;
@@ -925,7 +930,7 @@ function createFieldComponentHtml(fieldName) {
 function createAIFieldComponentHtml(fieldName) {
     const componentId = `aifield-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    const html = `<span class="aifield-component" data-field-text="[aifield: ${fieldName}]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
+    const html = `<span class="aifield-component" data-field-text="[aifield: ${fieldName}][/aifield]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
         <span class="field-label" style="display: block; font-size: 9px; color: #1d4ed8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">AI Field</span>
         <span class="field-content" style="display: block; font-size: 12px; color: #1e40af; font-weight: 500; line-height: 1;">${fieldName}</span>
     </span>`;

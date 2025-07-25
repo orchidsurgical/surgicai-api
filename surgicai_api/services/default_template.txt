@@ -1,23 +1,23 @@
-PATIENT NAME: [field: Patient Name]
+PATIENT NAME: [field: Patient Name][/field]
 
-SURGEON: [field: Surgeon Name]
+SURGEON: [field: Surgeon Name][/field]
 
-DATE: [field: Date]
+DATE: [field: Date][/field]
 
-PREOPERATIVE DIAGNOSIS: [field: Preoperative Diagnosis]
+PREOPERATIVE DIAGNOSIS: [field: Preoperative Diagnosis][/field]
 
-POSTOPERATIVE DIAGNOSIS: [aifield: Postoperative Diagnosis]
+POSTOPERATIVE DIAGNOSIS: [aifield: Postoperative Diagnosis][/aifield]
 
-HPI: [field: HPI]
+HPI: [field: HPI][/field]
 
-PROCEDURES: [aifield: Procedures]
+PROCEDURES: [aifield: Procedures][/aifield]
 
-FINDINGS: [field: Findings]
+FINDINGS: [field: Findings][/field]
 
-NARRATIVE: [field: Narrative]
+NARRATIVE: [field: Narrative][/field]
 
-ESTIMATED BLOOD LOSS: [field: Estimated Blood Loss]
+ESTIMATED BLOOD LOSS: [field: Estimated Blood Loss][/field]
 
-COMPLICATIONS: [field: Complications]
+COMPLICATIONS: [field: Complications][/field]
 
-DISPOSITION: [field: Disposition]
+DISPOSITION: [field: Disposition][/field]

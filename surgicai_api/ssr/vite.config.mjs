@@ -5,11 +5,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        transcribe: resolve(__dirname, 'frontend-src/transcribe.js')
+        transcribe: resolve(__dirname, 'frontend-src/transcribe.js'),
+        template_fields: resolve(__dirname, 'frontend-src/template_fields.js'),
+        editor_fields: resolve(__dirname, 'frontend-src/editor_fields.js'),
       },
       output: {
-        entryFileNames: 'transcribe.js',
-        format: 'iife' // Ensures globals for browser usage
+        entryFileNames: '[name].js',
+        // format: 'iife' // Ensures globals for browser usage
       }
     },
     outDir: 'static/js',

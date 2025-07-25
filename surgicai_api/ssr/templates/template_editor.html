@@ -178,6 +178,51 @@
     margin: 0 0.5rem;
   }
   
+  /* Insert Field Dropdown Styles */
+  .toolbar-group .dropdown-menu {
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    min-width: 220px;
+  }
+  
+  .toolbar-group .dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border: none;
+    background: none;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+  
+  .toolbar-group .dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+  
+  .toolbar-group .dropdown-item:focus {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    box-shadow: none;
+  }
+  
+  .toolbar-group .dropdown-item i {
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  
+  .toolbar-group .dropdown-item .text-muted {
+    font-size: 12px;
+    line-height: 1.3;
+    color: #6b7280 !important;
+    margin-top: 2px;
+  }
+  
   .editor-content {
     padding: 0;
     min-height: 500px;
@@ -197,31 +242,6 @@
     min-height: 456px;
   }
   
-  /* Template field highlighting in editor */
-  .ql-editor .ql-background-#fff3cd {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-    border: 2px solid #ffc107 !important;
-    border-radius: 4px !important;
-    padding: 2px 4px !important;
-    font-weight: 600 !important;
-    display: inline-block !important;
-    margin: 0 1px !important;
-    position: relative !important;
-    animation: highlight-pulse 2s infinite !important;
-  }
-  
-  .ql-editor span[style*="background: rgb(255, 243, 205)"] {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-    border: 2px solid #ffc107 !important;
-    border-radius: 4px !important;
-    padding: 2px 4px !important;
-    font-weight: 600 !important;
-    display: inline-block !important;
-    margin: 0 1px !important;
-    position: relative !important;
-    animation: highlight-pulse 2s infinite !important;
-  }
-  
   .ql-editor.ql-blank::before {
     left: 2rem;
     right: 2rem;
@@ -235,66 +255,6 @@
   
   .ql-toolbar .ql-formats {
     margin-right: 1rem;
-  }
-  
-  /* Template field highlighting */
-  .template-field {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 2px solid #ffc107;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-weight: 600;
-    color: #856404;
-    position: relative;
-    display: inline-block;
-    animation: highlight-pulse 2s infinite;
-  }
-  
-  .template-field::before {
-    content: "📝";
-    font-size: 0.8em;
-    margin-right: 2px;
-  }
-  
-  .template-field-overlay {
-    animation: fadeInUp 0.3s ease;
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes highlight-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
-  }
-  
-  /* Field count indicator */
-  .field-count-indicator {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0066cc;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 1000;
-    display: none;
-  }
-  
-  .field-count-indicator.show {
-    display: block;
   }
   
   .template-fields-help {
@@ -568,11 +528,11 @@
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    padding: 0.5rem;
+    padding: 0.125rem 0.25rem;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 0.85rem;
-    margin: 0.5rem 0;
-    display: block;
+    color: #e83e8c;
+    display: inline;
   }
   
   .help-example {
@@ -595,6 +555,21 @@
     font-size: 0.85rem;
     color: #333;
     white-space: pre-wrap;
+  }
+  
+  .help-section-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .help-section-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .help-section-content li {
+    margin: 0.25rem 0;
+    line-height: 1.5;
   }
   
   .keyboard-shortcut {
@@ -697,6 +672,100 @@
     border-color: #b3d9ff;
     color: #0c5460;
   }
+
+  /* Field Component Styles */
+  .field-component {
+    display: inline-block;
+    position: relative;
+    background: #fefce8;
+    border: 1px solid #eab308;
+    border-radius: 4px;
+    padding: 2px 6px 4px 6px;
+    margin: 0 2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: default;
+    vertical-align: baseline;
+    line-height: 1.2;
+    isolation: isolate;
+  }
+  
+  .field-component .field-label {
+    display: block;
+    font-size: 9px;
+    color: #a16207;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+  
+  .field-component .field-content {
+    display: block;
+    font-size: 12px;
+    color: #92400e;
+    font-weight: 500;
+    line-height: 1;
+  }
+  
+  .field-component:hover {
+    background: #fef3c7;
+    border-color: #d97706;
+  }
+  
+  /* AI Field Component Styles */
+  .aifield-component {
+    display: inline-block;
+    position: relative;
+    background: #dbeafe;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    padding: 2px 6px 4px 6px;
+    margin: 0 2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: default;
+    vertical-align: baseline;
+    line-height: 1.2;
+    isolation: isolate;
+  }
+  
+  .aifield-component .field-label {
+    display: block;
+    font-size: 9px;
+    color: #1d4ed8;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+  
+  .aifield-component .field-content {
+    display: block;
+    font-size: 12px;
+    color: #1e40af;
+    font-weight: 500;
+    line-height: 1;
+  }
+  
+  .aifield-component:hover {
+    background: #bfdbfe;
+    border-color: #2563eb;
+  }
+  
+  /* Make sure field components don't break layout and don't affect adjacent text */
+  .ql-editor .field-component,
+  .ql-editor .aifield-component {
+    white-space: nowrap;
+  }
+  
+  /* Ensure text after fields inherits proper styling */
+  .ql-editor .field-component + *,
+  .ql-editor .aifield-component + * {
+    color: inherit;
+    background: inherit;
+    font-family: inherit;
+  }
 </style>
 {% endblock %}
 
@@ -734,24 +803,31 @@
           <div class="info-label">Last Updated</div>
           <div class="info-value" id="lastUpdatedField">-</div>
         </div>
-        <div class="info-field">
-          <div class="info-label">Template Fields</div>
-          <div class="info-value" id="fieldCount">
-            <span id="templateFieldsCount">0 fields detected</span>
-          </div>
-        </div>
       </div>
     </div>
     
     <div class="editor-toolbar">
       <div class="toolbar-group">
-        <button class="btn btn-sm btn-outline-primary" onclick="insertTemplateField()">
-          <i class="bi bi-plus-circle me-1"></i>Insert Field
-        </button>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="insertFieldDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-plus-square me-1"></i>Insert Field
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="insertFieldDropdown">
+            <li>
+              <a class="dropdown-item" href="#" onclick="insertFieldType('field'); return false;">
+                <i class="bi bi-input-cursor-text me-2"></i>Field
+                <small class="text-muted d-block">Create a custom field</small>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" onclick="insertFieldType('aifield'); return false;">
+                <i class="bi bi-robot me-2"></i>AI Field
+                <small class="text-muted d-block">Insert a predefined AI field</small>
+              </a>
+            </li>
+          </ul>
+        </div>
         <div class="toolbar-separator"></div>
-        <button class="btn btn-sm btn-outline-primary" onclick="previewTemplate()">
-          <i class="bi bi-eye me-1"></i>Preview Template
-        </button>
         <button class="btn btn-sm btn-outline-primary" onclick="createOpNoteFromTemplate()">
           <i class="bi bi-file-earmark-plus me-1"></i>Create OpNote from Template
         </button>
@@ -779,10 +855,7 @@
   <span id="saveMessage">Saved</span>
 </div>
 
-<div class="field-count-indicator" id="fieldCountIndicator">
-  <i class="bi bi-file-earmark-text me-1"></i>
-  <span id="fieldCountText">0 template fields</span>
-</div>
+
 
 <!-- Help Panel -->
 <div class="help-panel" id="helpPanel">
@@ -796,33 +869,6 @@
   </div>
   
   <div class="help-panel-content">
-    <div class="help-section">
-      <div class="help-section-title">
-        <i class="bi bi-lightbulb"></i>
-        Template Fields
-      </div>
-      <div class="help-section-content">
-        <p>Use <code>***</code> to create template fields that will be replaced when creating operative notes.</p>
-        
-        <div class="help-example">
-          <div class="help-example-title">Example Template:</div>
-          <div class="help-example-content">Patient *** underwent *** procedure on ***.
-
-PROCEDURE: ***
-SURGEON: ***
-ANESTHESIA: ***
-
-FINDINGS:
-***
-
-PROCEDURE DETAILS:
-***</div>
-        </div>
-        
-        <p>Each <code>***</code> becomes a fillable field when creating an operative note from this template.</p>
-      </div>
-    </div>
-    
     <div class="help-section">
       <div class="help-section-title">
         <i class="bi bi-keyboard"></i>
@@ -842,6 +888,106 @@ PROCEDURE DETAILS:
             <span class="shortcut-key">⌘</span>
             <span class="shortcut-key">S</span>
           </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Open field menu</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">/</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Navigate menu items</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">↑</span>
+            <span class="shortcut-key">↓</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Select menu item</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">Enter</span>
+          </div>
+        </div>
+        <div class="keyboard-shortcut">
+          <span class="shortcut-description">Close menu</span>
+          <div class="shortcut-keys">
+            <span class="shortcut-key">Esc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">
+        <i class="bi bi-input-cursor-text"></i>
+        Template Fields
+      </div>
+      <div class="help-section-content">
+        <p>Fields are placeholders that can be filled in when creating operative notes from templates. There are two types of fields:</p>
+        
+        <div class="help-example">
+          <div class="help-example-title">Regular Fields (Yellow):</div>
+          <div class="help-example-content">Custom fields you create for any purpose.
+Examples: Patient Name, Surgeon Name, Procedure</div>
+        </div>
+        
+        <div class="help-example">
+          <div class="help-example-title">AI Fields (Blue):</div>
+          <div class="help-example-content">Predefined fields that can be auto-filled by AI.
+Examples: Postoperative Diagnosis, Procedures</div>
+        </div>
+        
+        <p><strong>Creating Fields:</strong></p>
+        <ol>
+          <li>Click the "Insert Field" dropdown in the toolbar and select "Field" or "AI Field", or</li>
+          <li>Type <code class="help-code">/</code> to open the slash menu</li>
+          <li>Select "Field" for custom fields or "AI Field" for predefined options</li>
+          <li>Enter a descriptive name for your field</li>
+          <li>The field will appear highlighted in your template</li>
+        </ol>
+        
+        <p><strong>Field Behavior:</strong></p>
+        <ul>
+          <li>Fields are saved in the format <code class="help-code">[field: name]</code> or <code class="help-code">[aifield: name]</code></li>
+          <li>Use Backspace to delete entire fields</li>
+          <li>Arrow keys navigate around fields as single units</li>
+          <li>Fields maintain their formatting when templates are used</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <div class="help-section-title">
+        <i class="bi bi-lightbulb"></i>
+        Tips & Best Practices
+      </div>
+      <div class="help-section-content">
+        <p><strong>Template Design:</strong></p>
+        <ul>
+          <li>Use descriptive field names (e.g., "Patient Name" not "Name")</li>
+          <li>Place fields where information will be filled in</li>
+          <li>Use AI fields for content that can be auto-generated</li>
+          <li>Keep static text separate from dynamic fields</li>
+        </ul>
+        
+        <p><strong>Field Naming:</strong></p>
+        <ul>
+          <li>Use clear, specific names</li>
+          <li>Avoid abbreviations when possible</li>
+          <li>Consider how others will understand the field purpose</li>
+        </ul>
+        
+        <div class="help-example">
+          <div class="help-example-title">Example Template Structure:</div>
+          <div class="help-example-content">PATIENT: [field: Patient Name]
+DATE: [field: Surgery Date]
+SURGEON: [field: Primary Surgeon]
+
+PROCEDURE:
+[aifield: Procedures]
+
+DIAGNOSIS:
+[aifield: Postoperative Diagnosis]</div>
         </div>
       </div>
     </div>
@@ -900,7 +1046,8 @@ PROCEDURE DETAILS:
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/template_fields.js') }}"></script>
 <script>
   // Global variables
   let quill;
@@ -909,7 +1056,6 @@ PROCEDURE DETAILS:
   let isLoading = false;
   let hasUnsavedChanges = false;
   let isInitialLoad = true; // Flag to prevent triggering unsaved changes during initial load
-  let templateFieldCount = 0; // Track number of template fields
   
   // Initialize the editor
   document.addEventListener('DOMContentLoaded', function() {
@@ -954,14 +1100,19 @@ PROCEDURE DETAILS:
       
       console.log('Quill initialized successfully');
       
+      // Initialize template fields functionality
+      if (typeof initializeFields === 'function') {
+        console.log('Initializing template fields functionality...');
+        initializeFields();
+      } else {
+        console.warn('Template fields functionality not available');
+      }
+      
       // Listen for text changes
       quill.on('text-change', function(delta, oldDelta, source) {
         if (source === 'user' && !isInitialLoad) {
           hasUnsavedChanges = true;
           updateSaveIndicator('modified');
-          // Detect template fields with a longer delay to allow typing to complete
-          clearTimeout(window.fieldDetectionTimeout);
-          window.fieldDetectionTimeout = setTimeout(detectAndHighlightTemplateFields, 500);
         }
       });
     } catch (error) {
@@ -1053,134 +1204,7 @@ PROCEDURE DETAILS:
     // Reset initial load flag after template is fully populated
     setTimeout(() => {
       isInitialLoad = false;
-      // Detect and highlight fields after initial load
-      detectAndHighlightTemplateFields();
     }, 200); // Increased timeout to ensure content is set
-  }
-  
-  function detectAndHighlightTemplateFields() {
-    if (!quill) return;
-    
-    const text = quill.getText();
-    
-    // Find all *** patterns (just the three asterisks)
-    const fieldPattern = /\*\*\*/g;
-    let matches = [];
-    let match;
-    
-    while ((match = fieldPattern.exec(text)) !== null) {
-      matches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        text: match[0],
-        fieldName: `Field ${matches.length + 1}`
-      });
-    }
-    
-    // Update field count
-    templateFieldCount = matches.length;
-    updateFieldCountDisplay(matches);
-    
-    // Since we're in plain text mode, we'll use overlay indicators
-    highlightFieldsInEditor(matches);
-  }
-  
-  function highlightFieldsInEditor(matches) {
-    if (!quill || matches.length === 0) {
-      // Clear all formatting if no matches
-      if (quill) {
-        const fullRange = quill.getLength();
-        quill.removeFormat(0, fullRange, 'silent');
-      }
-      return;
-    }
-    
-    // Store current cursor position
-    const currentSelection = quill.getSelection();
-    
-    // Clear all formatting first
-    const fullRange = quill.getLength();
-    quill.removeFormat(0, fullRange, 'silent');
-    
-    // Apply highlighting to each *** field
-    matches.forEach((match, index) => {
-      try {
-        // Apply background color styling to the *** text
-        quill.formatText(match.start, match.end - match.start, {
-          'background': '#fff3cd',
-          'color': '#856404'
-        }, 'silent');
-      } catch (error) {
-        console.warn('Error highlighting field:', error);
-      }
-    });
-    
-    // Restore cursor position if it existed
-    if (currentSelection) {
-      quill.setSelection(currentSelection.index, currentSelection.length, 'silent');
-    }
-  }
-  
-  function updateFieldCountDisplay(matches = []) {
-    const fieldCountElement = document.getElementById('fieldCount');
-    const fieldCountIndicator = document.getElementById('fieldCountIndicator');
-    const templateFieldsCountElement = document.getElementById('templateFieldsCount');
-    const fieldCountTextElement = document.getElementById('fieldCountText');
-    
-    const count = matches.length;
-    const countText = count === 1 ? '1 field detected' : `${count} fields detected`;
-    const indicatorText = count === 1 ? '1 template field' : `${count} template fields`;
-    
-    if (templateFieldsCountElement) {
-      templateFieldsCountElement.textContent = countText;
-      if (count > 0) {
-        templateFieldsCountElement.style.color = '#0066cc';
-        templateFieldsCountElement.style.fontWeight = '600';
-      } else {
-        templateFieldsCountElement.style.color = '';
-        templateFieldsCountElement.style.fontWeight = '';
-      }
-    }
-    
-    if (fieldCountTextElement) {
-      fieldCountTextElement.textContent = indicatorText;
-    }
-    
-    if (fieldCountIndicator) {
-      if (count > 0) {
-        fieldCountIndicator.classList.add('show');
-      } else {
-        fieldCountIndicator.classList.remove('show');
-      }
-    }
-    
-    // Update the help section - no need to show field positions for unnamed fields
-    const existingFieldList = document.querySelector('.detected-fields');
-    if (existingFieldList) {
-      existingFieldList.remove();
-    }
-  }
-  
-  function insertTemplateField() {
-    if (!quill) return;
-    
-    const selection = quill.getSelection();
-    if (selection) {
-      // Insert *** at the current cursor position
-      quill.insertText(selection.index, '***', 'user');
-      // Move cursor after the inserted field
-      quill.setSelection(selection.index + 3);
-    } else {
-      // If no selection, insert at the end
-      const length = quill.getLength();
-      quill.insertText(length - 1, '***', 'user');
-      quill.setSelection(length + 2);
-    }
-    
-    // Trigger field detection after insertion
-    setTimeout(() => {
-      detectAndHighlightTemplateFields();
-    }, 100);
   }
   
   function saveTemplate() {
@@ -1190,7 +1214,8 @@ PROCEDURE DETAILS:
     let content = '';
     
     if (quill) {
-      content = quill.getText(); // Get plain text instead of HTML
+      // Use our custom function to get text with fields in proper format
+      content = window.getTextWithFields ? window.getTextWithFields() : quill.getText();
     } else {
       // Fallback to get content from editor element
       const editorElement = document.getElementById('editor');
@@ -1270,70 +1295,45 @@ PROCEDURE DETAILS:
     });
   }
   
-  function previewTemplate() {
-    if (!currentTemplate) return;
-    
-    let content = '';
-    if (quill) {
-      content = quill.getText().trim();
+  function insertFieldType(fieldType) {
+    if (!quill) {
+      console.warn('Quill editor not available');
+      showToast('Editor not ready. Please try again.', 'warning');
+      return;
     }
     
-    // Highlight template fields in the preview
-    const highlightedContent = content.replace(/\*\*\*/g, 
-      '<span style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #ffc107; border-radius: 4px; padding: 2px 6px; font-weight: 600; color: #856404; display: inline-block; margin: 0 2px;">📝 <strong>***</strong> <em style="font-size: 0.8em; opacity: 0.7;">(field)</em></span>'
-    );
+    // Get current cursor position, or use the last known position, or default to 0
+    let selection = quill.getSelection();
+    if (!selection) {
+      // Try to get the last known cursor position or default to the end of the document
+      const length = quill.getLength();
+      const cursorPosition = length > 1 ? length - 1 : 0; // Position before the final newline or at start
+      selection = { index: cursorPosition, length: 0 };
+      
+      // Set the cursor position so the user knows where the field will be inserted
+      quill.setSelection(cursorPosition, 0);
+      console.log(`No active cursor, using position ${cursorPosition}`);
+    }
     
-    const previewWindow = window.open('', '_blank', 'width=800,height=600');
-    previewWindow.document.write(`
-      <html>
-        <head>
-          <title>Template Preview - ${currentTemplate.name}</title>
-          <style>
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              font-size: 12pt; 
-              line-height: 1.6; 
-              margin: 2rem; 
-              color: #333;
-            }
-            h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 0.5rem; }
-            .template-info { 
-              background: #f8f9fa; 
-              padding: 1rem; 
-              border-radius: 8px; 
-              margin-bottom: 2rem; 
-            }
-            .template-fields-info {
-              background: #e7f3ff;
-              border: 1px solid #b3d9ff;
-              border-radius: 8px;
-              padding: 1rem;
-              margin-bottom: 1rem;
-            }
-            .template-fields-info h3 {
-              margin-top: 0;
-              color: #0066cc;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Template Preview: ${escapeHtml(currentTemplate.name)}</h1>
-          <div class="template-info">
-            <p><strong>Template Name:</strong> ${escapeHtml(currentTemplate.name)}</p>
-            <p><strong>Default Title:</strong> ${escapeHtml(currentTemplate.title || 'None')}</p>
-            <p><strong>Template Fields Found:</strong> ${templateFieldCount}</p>
-          </div>
-          ${templateFieldCount > 0 ? `
-          <div class="template-fields-info">
-            <h3>📝 Template Fields</h3>
-            <p>The highlighted sections below are template fields that will be replaced with actual values when creating an operative note from this template.</p>
-          </div>
-          ` : ''}
-          <div style="white-space: pre-wrap; line-height: 1.8;">${highlightedContent}</div>
-        </body>
-      </html>
-    `);
-    previewWindow.document.close();
+    console.log(`Inserting ${fieldType} at cursor position:`, selection.index);
+    
+    if (fieldType === 'field') {
+      // Show custom field name input modal (reuse from template_fields.js)
+      if (typeof showFieldNameInput === 'function') {
+        showFieldNameInput();
+      } else {
+        console.warn('showFieldNameInput function not available');
+        showToast('Field insertion feature is not available', 'warning');
+      }
+    } else if (fieldType === 'aifield') {
+      // Show AI field options modal (reuse from template_fields.js)
+      if (typeof showAIFieldOptions === 'function') {
+        showAIFieldOptions();
+      } else {
+        console.warn('showAIFieldOptions function not available');
+        showToast('AI field insertion feature is not available', 'warning');
+      }
+    }
   }
   
   function createOpNoteFromTemplate() {
@@ -1362,7 +1362,7 @@ PROCEDURE DETAILS:
     // Get current template content
     let templateContent = '';
     if (quill) {
-      templateContent = quill.getText();
+      templateContent = window.getTextWithFields ? window.getTextWithFields() : quill.getText();
     }
     
     // Prepare the request data

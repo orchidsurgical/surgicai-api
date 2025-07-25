@@ -39,7 +39,8 @@ let audioContextRef = null;
 let processorRef = null;
 let sourceRef = null;
 let mediaStreamRef = null;
-let lastPartial = { index: null, length: 0 };
+let lastPartial = { element: null, index: null, length: 0 };
+let lastFocusedElement = null; // Track last focused editor or field element
 
 // Browser audio stream setup
 async function* getAudioStream() {
@@ -127,7 +128,7 @@ async function startDictation() {
                 if (results && results.length > 0) {
                     console.log(results);
                 }
-                insertTranscriptToQuill(event);
+                insertTranscriptAtCursor(event);
             }
         }
     } catch (error) {
@@ -154,62 +155,141 @@ function stopDictation() {
     isDictating = false;
 }
 
-function insertTranscriptToQuill(event) {
-    let quillInstance = window.quill;
-    if (!quillInstance && window.Quill) {
-        const editorElem = document.getElementById('editor');
-        if (editorElem && editorElem.__quill) {
-            quillInstance = editorElem.__quill;
-        }
-    }
+function insertTranscriptAtCursor(event) {
     const results = event.TranscriptEvent.Transcript.Results;
-    if (results && results.length > 0) {
-        const result = results[0];
-        if (result.Alternatives && result.Alternatives.length > 0) {
-            let transcript = result.Alternatives[0].Transcript;
-            if (transcript) {
-                // Remove previous partial highlight if present
-                if (lastPartial.index !== null && lastPartial.length > 0) {
-                    quillInstance.formatText(lastPartial.index, lastPartial.length, { background: false }, 'silent');
-                    quillInstance.deleteText(lastPartial.index, lastPartial.length, 'silent');
+    if (!results || results.length === 0) return;
+    
+    const result = results[0];
+    if (!result.Alternatives || result.Alternatives.length === 0) return;
+    
+    let transcript = result.Alternatives[0].Transcript;
+    if (!transcript) return;
+    
+    // Check if we're currently focused on a field component
+    const activeElement = document.activeElement;
+    const isInFieldComponent = activeElement && activeElement.classList.contains('field-content');
+    
+    // Use last focused element if current element isn't relevant
+    let targetElement = activeElement;
+    if (!isInFieldComponent && !activeElement.classList.contains('ql-editor')) {
+        targetElement = lastFocusedElement;
+    }
+    
+    // Determine if we should use field insertion or Quill insertion
+    if (targetElement) {
+        insertTranscriptToField(targetElement, transcript, result.IsPartial);
+    }
+}
+
+function insertTranscriptToField(fieldElement, transcript, isPartial) {
+    if (!isPartial) {
+        // Get current selection/cursor position
+        const selection = window.getSelection();
+        
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            
+            // Check if the range is within the field element
+            if (fieldElement.contains(range.startContainer)) {
+                // Store the current range position before any modifications
+                const startContainer = range.startContainer;
+                const startOffset = range.startOffset;
+                
+                // Delete any selected text first (if there's a selection)
+                if (!range.collapsed) {
+                    range.deleteContents();
                 }
-                // Insert or overwrite transcript
-                const range = quillInstance.getSelection(true);
-                let index = range ? range.index : quillInstance.getLength();
-                let length = range ? range.length : 0;
-                if (length > 0) {
-                    quillInstance.deleteText(index, length, 'silent');
-                }
-                // Check if previous character is a period
+                
+                // Check if we need to add a space before the transcript
                 let needsSpace = false;
-                if (index > 0) {
-                    const prevChar = quillInstance.getText(index - 1, 1);
-                    if (prevChar === '.') {
-                        needsSpace = true;
+                
+                // Only add space if not at the beginning of content
+                if (startOffset > 0) {
+                    if (startContainer.nodeType === Node.TEXT_NODE) {
+                        // Check the character before the cursor in the text node
+                        const prevChar = startContainer.textContent.charAt(startOffset - 1);
+                        needsSpace = prevChar !== ' ';
+                    } else if (startContainer.nodeType === Node.ELEMENT_NODE && startOffset > 0) {
+                        // Check the last character of the previous node
+                        const prevNode = startContainer.childNodes[startOffset - 1];
+                        if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
+                            const lastChar = prevNode.textContent.slice(-1);
+                            needsSpace = lastChar !== ' ';
+                        }
                     }
                 }
-                // Capitalize first letter of transcript
-                transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-                let insertText = (needsSpace ? ' ' : '') + transcript + ' ';
-                quillInstance.insertText(index, insertText, 'silent');
-                // Always use formatText for background color
-                if (result.IsPartial) {
-                    quillInstance.formatText(index, insertText.length, { background: '#e3f2fd' }, 'silent');
+                
+                // Prepare the text to insert
+                const textToInsert = needsSpace ? ' ' + transcript : transcript;
+                
+                // Use execCommand for better cursor positioning
+                if (document.execCommand) {
+                    document.execCommand('insertText', false, textToInsert);
                 } else {
-                    quillInstance.formatText(index, insertText.length, { background: false }, 'silent');
+                    // Fallback for browsers that don't support execCommand
+                    const textNode = document.createTextNode(textToInsert);
+                    range.insertNode(textNode);
+                    
+                    // Calculate the new cursor position
+                    const newOffset = startOffset + textToInsert.length;
+                    range.setStart(startContainer, newOffset);
+                    range.setEnd(startContainer, newOffset);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
                 }
-                // Track the new partial
-                lastPartial.index = index;
-                lastPartial.length = insertText.length;
-                // If result is final, move cursor and reset partial tracking
-                if (!result.IsPartial) {
-                    quillInstance.setSelection(index + insertText.length, 0);
-                    lastPartial.index = null;
-                    lastPartial.length = 0;
-                } else {
-                    quillInstance.setSelection(index + insertText.length, 0);
+            } else {
+                // Range is not in the field element, use fallback
+                fieldElement.focus();
+                
+                // Check if we need space before appending
+                let needsSpace = false;
+                if (fieldElement.textContent.length > 0) {
+                    const lastChar = fieldElement.textContent.slice(-1);
+                    needsSpace = lastChar !== ' ';
                 }
+                
+                const textToInsert = needsSpace ? ' ' + transcript : transcript;
+                const textNode = document.createTextNode(textToInsert);
+                fieldElement.appendChild(textNode);
+                
+                // Position cursor at the end of the inserted text
+                const range = document.createRange();
+                range.setStartAfter(textNode);
+                range.setEndAfter(textNode);
+                selection.removeAllRanges();
+                selection.addRange(range);
             }
+        } else {
+            // No selection range, focus the element and position at end
+            fieldElement.focus();
+            
+            // Check if we need space before appending
+            let needsSpace = false;
+            if (fieldElement.textContent.length > 0) {
+                const lastChar = fieldElement.textContent.slice(-1);
+                needsSpace = lastChar !== ' ';
+            }
+            
+            // Create a range at the end of existing content
+            const range = document.createRange();
+            if (fieldElement.childNodes.length > 0) {
+                range.setStartAfter(fieldElement.lastChild);
+                range.setEndAfter(fieldElement.lastChild);
+            } else {
+                range.setStart(fieldElement, 0);
+                range.setEnd(fieldElement, 0);
+            }
+            
+            // Insert transcript at the end
+            const textToInsert = needsSpace ? ' ' + transcript : transcript;
+            const textNode = document.createTextNode(textToInsert);
+            range.insertNode(textNode);
+            
+            // Position cursor at the end of the inserted text
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
     }
 }
@@ -226,3 +306,21 @@ function toggleDictation() {
 window.startDictation = startDictation;
 window.stopDictation = stopDictation;
 window.toggleDictation = toggleDictation;
+
+// Track focus changes on editor and field elements
+document.addEventListener('focusin', function(event) {
+    const target = event.target;
+    
+    // Check if the focused element is the Quill editor or a field element
+    if (target.classList.contains('ql-editor') || 
+        target.classList.contains('field-content')) {
+        lastFocusedElement = target;
+        console.log('Focused element:', lastFocusedElement);
+    }
+});
+
+// Also track when elements lose focus to maintain the last known good element
+document.addEventListener('focusout', function(event) {
+    // Keep the lastFocusedElement as is - don't clear it on blur
+    // This way we maintain the last known editor/field that was focused
+});

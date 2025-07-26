@@ -21,6 +21,7 @@ boto3 = "^1.39.7"
 flask-restful = "^0.3.10"
 marshmallow = "^3.20.1"
 pytz = "^2025.2"
+sentry-sdk = {extras = ["flask"], version = "^2.33.2"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.1"

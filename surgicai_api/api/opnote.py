@@ -1,3 +1,5 @@
+import re
+from collections import OrderedDict
 from datetime import datetime
 
 from flask import g, request
@@ -24,6 +26,36 @@ class OpNoteSchema(Schema):
     text = fields.Str(allow_none=True)
     created_at = DateTimeWithTZ(dump_only=True)
     updated_at = DateTimeWithTZ(dump_only=True)
+    field_data = fields.Method("extract_field_data", dump_only=True, allow_none=True)
+
+    def extract_field_data(self, instance):
+        """
+        Extracts field data from the operative note text.
+        The text should contain fields in the format [field: name]content[/field] or [aifield: name]content[/aifield].
+        Returns a dictionary of field names and their content and type.
+        Example:
+        {
+        "field name": {
+            "is_ai_field": true/false,
+            "content": content
+        }
+        }
+        """
+        text = instance.text
+        if not text:
+            return {}
+        result = {}
+        # Pattern for [field: name]content[/field]
+        field_pattern = re.compile(
+            r"\[(field|aifield):\s*([^\]]+)](.*?)\[/\1]", re.DOTALL | re.IGNORECASE
+        )
+        for match in field_pattern.finditer(text):
+            field_type = match.group(1).lower()
+            field_name = match.group(2).strip()
+            content = match.group(3).strip()
+            is_ai_field = field_type == "aifield"
+            result[field_name] = {"is_ai_field": is_ai_field, "content": content}
+        return result
 
 
 schema = OpNoteSchema()

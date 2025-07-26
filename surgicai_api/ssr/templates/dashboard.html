@@ -76,6 +76,12 @@
     padding: 2rem;
   }
 </style>
+<style>
+  /* Make field badge text non-bolded */
+  .field-badge {
+    font-weight: 400 !important;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -115,7 +121,7 @@
               <span class="input-group-text">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by title..." onkeyup="filterOpNotes()">
+              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by content..." onkeyup="filterOpNotes()">
             </div>
           </div>
           <div class="col-md-4">
@@ -201,9 +207,9 @@
               </select>
               <div class="form-text">Choose a template to pre-populate the operative note content</div>
             </div>
-            <div class="col-12">
+            <div class="col-12" style="display: none;">
               <label for="title" class="form-label">Title</label>
-              <input type="text" class="form-control" id="title" required placeholder="Enter operative note title">
+              <input type="text" class="form-control" id="title" required placeholder="Enter operative note title" value="Operative Note">
             </div>
           </div>
         </form>
@@ -470,8 +476,8 @@ function filterOpNotes() {
     filteredOpNotes = [...allOpNotes];
   } else {
     filteredOpNotes = allOpNotes.filter(note => {
-      const title = note.title?.toLowerCase() || '';
-      return title.includes(searchTerm);
+      const text = note.text?.toLowerCase() || '';
+      return text.includes(searchTerm);
     });
   }
   
@@ -559,9 +565,20 @@ function updateOperativeNotesList() {
         <div class="d-flex w-100 justify-content-between align-items-start">
           <div class="flex-grow-1">
             <div class="d-flex align-items-center mb-2">
-              <h5 class="mb-0 me-3">${escapeHtml(note.title)}</h5>
-              <span class="badge bg-light text-dark">Operative Note</span>
+              <span class="badge bg-primary text-white">Operative Note</span>
             </div>
+
+            ${note.field_data && Object.keys(note.field_data).length > 0 ? `
+              <div class="mb-2">
+                ${Object.entries(note.field_data).map(([fieldName, fieldInfo]) => {
+                  const badgeClass = fieldInfo.is_ai_field ? 'bg-info text-dark' : 'bg-light text-dark';
+                  const iconClass = fieldInfo.is_ai_field ? 'bi-robot' : 'bi-input-cursor-text';
+                  return `<span class="badge ${badgeClass} me-1 mb-1" style="font-weight:400;">
+                    <i class="${iconClass} me-1"></i>${escapeHtml(fieldName)}
+                  </span>`;
+                }).join('')}
+              </div>
+            ` : ''}
             
             <div class="row text-muted small">
               <div class="col-md-6">
@@ -684,9 +701,9 @@ function updateTemplateDropdown() {
 // Handle template selection
 function onTemplateSelected() {
   const templateSelect = document.getElementById('templateSelect');
-  const titleInput = document.getElementById('title');
+  // Remove title input reference since it's now hidden with default value
 
-  if (!templateSelect || !titleInput) return;
+  if (!templateSelect) return;
 
   const templateId = templateSelect.value;
   
@@ -709,10 +726,7 @@ function onTemplateSelected() {
   })
   .then(template => {
     selectedTemplate = template;
-    
-    // Populate the title field with the template name
-    titleInput.value = template.title || '';
-    
+    // No longer populating title since it's hidden with default value
     console.log('Template selected:', template);
   })
   .catch(error => {

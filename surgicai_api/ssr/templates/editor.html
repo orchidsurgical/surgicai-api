@@ -694,6 +694,9 @@
         <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
           <i class="bi bi-save me-1"></i>Save
         </button>
+        <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard()" id="copyButton">
+          <i class="bi bi-clipboard me-1"></i>Copy to Clipboard
+        </button>
         <button class="btn btn-sm btn-outline-secondary" onclick="backToDashboard()">
           <i class="bi bi-arrow-left me-1"></i>Back
         </button>
@@ -1499,6 +1502,39 @@
     }
   }
   
+  function copyToClipboard() {
+    let content = '';
+    // Use parseQuillTextWithFields to get content with field components properly formatted
+    if (window.parseQuillTextWithFields) {
+      content = window.parseQuillTextWithFields();
+    } else if (quill) {
+      content = quill.getText().trim(); // Fallback to plain text
+    } else {
+      // Fallback to get content from editor element
+      const editorElement = document.getElementById('editor');
+      if (editorElement) {
+        content = editorElement.textContent || editorElement.innerText || '';
+      }
+    }
+    if (!content) {
+      showToast('Nothing to copy', 'warning');
+      return;
+    }
+
+    // strip field tags if present
+    content = content.replace(/\[field:[^\]]+\]([^\[]+?)\[\/field\]/g, '$1')
+                     .replace(/\[aifield:[^\]]+\]([^\[]+?)\[\/aifield\]/g, '$1')
+
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        showToast('Note content copied to clipboard!', 'success');
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('Failed to copy to clipboard', 'danger');
+      });
+  }
+
   function backToDashboard() {
     if (hasUnsavedChanges) {
       if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {

@@ -795,9 +795,9 @@
           <div class="info-label">Template Name</div>
           <input type="text" class="info-input" id="templateNameField" placeholder="Enter template name">
         </div>
-        <div class="info-field">
+        <div class="info-field" style="display: none;">
           <div class="info-label">Default Title</div>
-          <input type="text" class="info-input" id="defaultTitle" placeholder="Default title for new operative notes">
+          <input type="text" class="info-input" id="defaultTitle" placeholder="Default title for new operative notes" value="Operative Note">
         </div>
         <div class="info-field">
           <div class="info-label">Last Updated</div>
@@ -1011,15 +1011,15 @@ DIAGNOSIS:
       </div>
       <div class="modal-body">
         <form id="createOpNoteForm">
-          <div class="mb-3">
+          <div class="mb-3" style="display: none;">
             <label for="opNoteTitle" class="form-label">Title</label>
             <input type="text" class="form-control" id="opNoteTitle" name="title" required>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" style="display: none;">
             <label for="patientFirstName" class="form-label">Patient First Name</label>
             <input type="text" class="form-control" id="patientFirstName" name="patient_first_name">
           </div>
-          <div class="mb-3">
+          <div class="mb-3" style="display: none;">
             <label for="patientLastName" class="form-label">Patient Last Name</label>
             <input type="text" class="form-control" id="patientLastName" name="patient_last_name">
           </div>

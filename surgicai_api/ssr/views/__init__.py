@@ -1,5 +1,6 @@
 from functools import wraps
 
+import sentry_sdk
 from flask import current_app as app
 from flask import flash, g, redirect, request, url_for
 
@@ -30,6 +31,15 @@ def check_jwt(view_method=None, require_admin=False):
 
             g.user = user
             g.hijacker_id = payload.get("hijacker_id")
+
+            sentry_sdk.set_user(
+                {
+                    "email": user.email,
+                    "id": str(user.id),
+                    "is_hijacked": "Hijacked" if g.hijacker_id else "Not Hijacked",
+                    "hijacker_id": str(g.hijacker_id) if g.hijacker_id else None,
+                }
+            )
 
             if require_admin and user.user_type != UserType.ADMIN:
                 flash("Access denied.", "danger")

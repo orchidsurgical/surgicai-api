@@ -121,17 +121,8 @@
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <button class="btn btn-outline-primary" onclick="showToast('System backup coming soon!', 'info')">
-              <i class="bi bi-cloud-arrow-up me-2"></i>Backup System
-            </button>
-            <button class="btn btn-outline-warning" onclick="showToast('System logs coming soon!', 'info')">
-              <i class="bi bi-file-text me-2"></i>View Logs
-            </button>
-            <button class="btn btn-outline-info" onclick="showToast('System health coming soon!', 'info')">
-              <i class="bi bi-heart-pulse me-2"></i>System Health
-            </button>
-            <button class="btn btn-outline-danger" onclick="showToast('Cache management coming soon!', 'info')">
-              <i class="bi bi-trash me-2"></i>Clear Cache
+            <button class="btn btn-outline-danger" onclick="fetch('/admin/test_error')">
+              <i class="bi bi-bug me-2"></i>Test Error
             </button>
           </div>
         </div>

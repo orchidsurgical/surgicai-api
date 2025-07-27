@@ -1,4 +1,4 @@
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, redirect, render_template, request
 
 from surgicai_api.ssr.views import check_jwt
 
@@ -15,3 +15,12 @@ def admin():
 @check_jwt(require_admin=True)
 def admin_users():
     return render_template("admin_users.html")
+
+
+@admin_bp.route("/admin/test_error", methods=["GET"])
+@check_jwt
+def admin_test_error():
+    class TestErrorNotARealError(Exception):
+        pass
+
+    raise TestErrorNotARealError("This is a test error for admin.")

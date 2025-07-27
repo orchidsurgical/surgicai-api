@@ -1,7 +1,9 @@
 import os
 
 import sentry_sdk
-from flask import Flask, g, jsonify
+from flask import Flask, g, has_request_context, jsonify
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -11,12 +13,13 @@ from surgicai_api.extensions import boto, cors, emails
 from surgicai_api.ssr.router import ssr_router
 
 sentry_sdk.init(
-    dsn="https://0d6d4023f74f98baf21d844d7d22e3eb@o4506482510135296.ingest.us.sentry.io/4509735028391936",
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    dsn="https://a4a6a8a08c4b5b735a668fb1d60acd30@o4506482510135296.ingest.us.sentry.io/4509740479807488",
     send_default_pii=True,
-    # Set the environment to differentiate between dev and prod
     environment=os.getenv("ENVIRONMENT", "dev"),
+    integrations=[
+        FlaskIntegration(),
+        SqlalchemyIntegration(),
+    ],
 )
 
 app = Flask(

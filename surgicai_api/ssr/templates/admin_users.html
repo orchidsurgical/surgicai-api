@@ -427,7 +427,7 @@
       <div class="modal-header" style="background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%); color: white;">
         <h5 class="modal-title" id="hijackModalLabel">
           <i class="bi bi-person-fill-exclamation me-2"></i>
-          Confirm User Hijack
+          Confirm User Simulate
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -445,7 +445,7 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" onclick="confirmHijack()" style="background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%); border: none;">
           <i class="bi bi-person-fill me-2"></i>
-          Hijack User
+          Simulate User
         </button>
       </div>
     </div>
@@ -604,7 +604,7 @@ function displayUsers(usersToDisplay) {
               <i class="bi bi-pencil me-1"></i>Edit
             </button>
             <button class="btn btn-action btn-hijack" onclick="showHijackModal('${user.id}')">
-              <i class="bi bi-person-fill me-1"></i>Hijack
+              <i class="bi bi-person-fill me-1"></i>Simulate
             </button>
             <button class="btn btn-action btn-delete" onclick="showDeleteModal('${user.id}')">
               <i class="bi bi-trash me-1"></i>Delete

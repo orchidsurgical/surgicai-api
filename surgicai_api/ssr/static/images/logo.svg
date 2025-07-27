@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="OperativeAI" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 179.81 179.81">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke-width: 29px;
+      }
+
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 100;
+      }
+
+      .cls-2 {
+        fill-rule: evenodd;
+        stroke-width: 38px;
+      }
+    </style>
+  </defs>
+  <circle class="cls-1" cx="89.91" cy="89.91" r="75.41"/>
+  <path class="cls-2" d="m134.58,138.56l-24.87,14.36c-12.25,7.07-27.35,7.07-39.6,0l-24.87-14.36c-12.25-7.07-19.8-20.15-19.8-34.29v-28.72c0-14.15,7.55-27.22,19.8-34.29l24.87-14.36c12.25-7.07,27.35-7.07,39.6,0l24.87,14.36c12.25,7.07,19.8,20.15,19.8,34.29v28.72c0,14.15-7.55,27.22-19.8,34.29Z"/>
+</svg>

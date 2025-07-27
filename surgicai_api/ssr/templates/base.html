@@ -325,8 +325,7 @@
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand d-flex align-items-center" href="/">
-        <i class="bi bi-file-medical me-2"></i>
-        OperativeAI
+        <img src="{{ url_for('static', filename='images/logo_with_name.svg') }}" alt="OperativeAI" height="30" class="me-2">
       </a>
       
       <div class="navbar-collapse" id="mainNavbar">
@@ -334,7 +333,7 @@
           {% if user %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('ssr.home.home') }}">
-                <i class="bi bi-file-earmark-medical me-1"></i>Dashboard
+                <i class="bi bi-file-earmark-medical me-1"></i>Op Notes
               </a>
             </li>
             <li class="nav-item">

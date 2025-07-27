@@ -34,6 +34,9 @@ class TemplateListResource(Resource):
 
     def post(self):
         data = schema.load(request.json)
+        if not data.get("text", None):
+            with open("surgicai_api/services/default_template.txt", "r") as f:
+                data["text"] = f.read()
         template = Template(owner_id=str(g.user.id), **data)
         g.db.add(template)
         g.db.commit()

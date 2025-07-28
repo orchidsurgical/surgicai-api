@@ -269,7 +269,6 @@
         content = content || '***'; // Ensure content is defined
         
         const html = `<span class="field-component" data-field-text="[field: ${fieldName}][/field]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #fefce8; border: 1px solid #eab308; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
-            <span class="field-label" style="display: block; font-size: 9px; color: #a16207; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">Field: ${fieldName}</span>
             <span class="field-content" style="display: block; font-size: 1em; color: #92400e; font-weight: 500; line-height: 1; word-wrap: break-word; white-space: pre-wrap; cursor: text; outline: none; caret-color: #92400e;" contenteditable="true">${content}</span>
         </span>`;
         
@@ -285,7 +284,6 @@
         content = content || '***'; // Ensure content is defined
         
         const html = `<span class="aifield-component" data-field-text="[aifield: ${fieldName}][/aifield]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
-            <span class="field-label" style="display: block; font-size: 9px; color: #1d4ed8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 1px;">AI Field: ${fieldName}</span>
             <span class="field-content" style="display: block; font-size: 1em; color: #1e40af; font-weight: 500; line-height: 1; word-wrap: break-word; white-space: pre-wrap; cursor: text; outline: none; caret-color: #1e40af;" contenteditable="true">${content}</span>
         </span>`;
         

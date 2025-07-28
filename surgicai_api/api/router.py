@@ -9,6 +9,7 @@ from surgicai_api.api.fields import StrictUUID
 from surgicai_api.api.login import LoginResource, LogoutResource
 from surgicai_api.api.me import MeResource
 from surgicai_api.api.opnote import OpNoteListResource, OpNoteResource
+from surgicai_api.api.optimize import OptimizeNoteResource
 from surgicai_api.api.template import TemplateListResource, TemplateResource
 from surgicai_api.api.transcribe import TranscribeCredentialsResource
 
@@ -35,6 +36,9 @@ api.add_resource(LogoutResource, "/logout/", strict_slashes=True)
 api.add_resource(MeResource, "/me/", strict_slashes=True)
 api.add_resource(OpNoteListResource, "/opnote/", strict_slashes=True)
 api.add_resource(OpNoteResource, "/opnote/<string:note_id>/", strict_slashes=True)
+api.add_resource(
+    OptimizeNoteResource, "/opnote/<string:op_note_id>/optimize/", strict_slashes=True
+)
 api.add_resource(TemplateListResource, "/template/", strict_slashes=True)
 api.add_resource(
     TemplateResource, "/template/<string:template_id>/", strict_slashes=True

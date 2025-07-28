@@ -1,12 +1,14 @@
 from enum import Enum
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import JSON, Column, DateTime
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import relationship
 
 from surgicai_api.models import BaseModel
+from surgicai_api.models.fields import JsonEncodedDict
 
 
 class OpNoteStatus(str, Enum):
@@ -32,6 +34,7 @@ class OpNote(BaseModel):
     operation_datetime_start = Column(DateTime, nullable=True)
     operation_datetime_end = Column(DateTime, nullable=True)
     text = Column(Text, nullable=True)
+    optimization_metadata = Column(JsonEncodedDict)
 
     owner = relationship("User", back_populates="op_notes")
 

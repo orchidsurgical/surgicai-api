@@ -12,15 +12,16 @@ from surgicai_api.api.router import api_bp
 from surgicai_api.extensions import boto, cors, emails
 from surgicai_api.ssr.router import ssr_router
 
-sentry_sdk.init(
-    dsn="https://a4a6a8a08c4b5b735a668fb1d60acd30@o4506482510135296.ingest.us.sentry.io/4509740479807488",
-    send_default_pii=True,
-    environment=os.getenv("ENVIRONMENT", "dev"),
-    integrations=[
-        FlaskIntegration(),
-        SqlalchemyIntegration(),
-    ],
-)
+if os.getenv("ENVIRONMENT", "dev") in ["staging", "prod", "production"]:
+    sentry_sdk.init(
+        dsn="https://a4a6a8a08c4b5b735a668fb1d60acd30@o4506482510135296.ingest.us.sentry.io/4509740479807488",
+        send_default_pii=True,
+        environment=os.getenv("ENVIRONMENT", "dev"),
+        integrations=[
+            FlaskIntegration(),
+            SqlalchemyIntegration(),
+        ],
+    )
 
 app = Flask(
     __name__,

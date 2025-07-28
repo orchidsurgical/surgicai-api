@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytz
@@ -55,3 +56,38 @@ class DateTimeWithTZ(fields.DateTime):
             else:
                 dt = pytz.UTC.localize(dt)
         return dt.astimezone(pytz.UTC)
+
+
+class JsonEncodedDict(fields.Field):
+    def __init__(self, *args, max_size=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_size = max_size
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        """
+        Returns the dictionary.
+
+        NOTE: This is a no-op. The value is already a dictionary when
+        it is loaded from the database.
+        """
+        if value is None:
+            return {}
+
+        return value
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        """
+        Returns the dictionary.
+        """
+        if value is None:
+            return {}
+
+        if not isinstance(value, dict):
+            raise ValidationError("Value must be a dict")
+
+        if self.max_size is not None:
+            if len(json.dumps(value)) > self.max_size:
+                error = f"Dict is too large to serialize. Max size is {self.max_size} bytes."
+                raise ValidationError(error)
+
+        return value

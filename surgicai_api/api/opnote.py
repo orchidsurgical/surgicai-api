@@ -1,6 +1,4 @@
 import re
-from collections import OrderedDict
-from datetime import datetime
 
 from flask import g, request
 from flask_restful import Resource
@@ -26,6 +24,7 @@ class OpNoteSchema(Schema):
     text = fields.Str(allow_none=True)
     created_at = DateTimeWithTZ(dump_only=True)
     updated_at = DateTimeWithTZ(dump_only=True)
+    optimization_metadata = fields.Dict(dump_only=True, dump_default={})
     field_data = fields.Method("extract_field_data", dump_only=True, allow_none=True)
 
     def extract_field_data(self, instance):
@@ -35,10 +34,10 @@ class OpNoteSchema(Schema):
         Returns a dictionary of field names and their content and type.
         Example:
         {
-        "field name": {
-            "is_ai_field": true/false,
-            "content": content
-        }
+            "field name": {
+                "is_ai_field": true/false,
+                "content": content
+            }
         }
         """
         text = instance.text

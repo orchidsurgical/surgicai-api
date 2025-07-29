@@ -8,6 +8,7 @@ export default defineConfig({
         transcribe: resolve(__dirname, 'frontend-src/transcribe.js'),
         template_fields: resolve(__dirname, 'frontend-src/template_fields.js'),
         editor_fields: resolve(__dirname, 'frontend-src/editor_fields.js'),
+        optimizer: resolve(__dirname, 'frontend-src/optimizer.js'),
       },
       output: {
         entryFileNames: '[name].js',

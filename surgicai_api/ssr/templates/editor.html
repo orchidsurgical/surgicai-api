@@ -716,7 +716,7 @@
         </button>
       </div>
       <div class="action-buttons">
-        <button class="btn btn-sm btn-primary" onclick="">
+        <button class="btn btn-sm btn-primary" onclick="optimizeNote()">
           <i class="bi bi-magic me-1"></i>Optimize Note
         </button>
         <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
@@ -932,7 +932,7 @@
 </button>
 
 <!-- Optimize Note Button -->
-<button class="optimize-fab" onclick="">
+<button class="optimize-fab" onclick="optimizeNote()">
   <i class="bi bi-magic me-1"></i>Optimize Note
 </button>
 {% endblock %}
@@ -941,6 +941,7 @@
 <script src="{{ url_for('static', filename='js/quill.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/transcribe.js') }}"></script>
 <script src="{{ url_for('static', filename='js/editor_fields.js') }}"></script>
+<script src="{{ url_for('static', filename='js/optimizer.js') }}"></script>
 <script>
   // Global variables
   let quill;
@@ -1723,6 +1724,19 @@
       window.navigateToNextField(false); // false = forward direction
     } else {
       showToast('Field navigation not available', 'warning');
+    }
+  }
+  
+  function optimizeNote() {
+    // Get the current note ID from the template
+    const noteId = '{{ note_id }}';
+    
+    // Call the optimization modal function from optimizer.js
+    if (window.showOptimizationModal) {
+      window.showOptimizationModal(noteId);
+    } else {
+      console.error('Optimization module not loaded');
+      showToast('Optimization feature not available', 'danger');
     }
   }
   

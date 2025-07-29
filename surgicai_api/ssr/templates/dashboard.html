@@ -191,13 +191,9 @@
       <div class="modal-body">
         <form id="newOpNoteForm">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label for="startDateTime" class="form-label">Start Date & Time</label>
+            <div class="col-12">
+              <label for="startDateTime" class="form-label">Operation Date & Time</label>
               <input type="datetime-local" class="form-control" id="startDateTime" required>
-            </div>
-            <div class="col-md-6">
-              <label for="endDateTime" class="form-label">End Date & Time</label>
-              <input type="datetime-local" class="form-control" id="endDateTime">
             </div>
             <div class="col-12">
               <label for="templateSelect" class="form-label">Template (Optional)</label>
@@ -338,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Set default start time to current time
       const now = new Date();
       const startInput = document.getElementById('startDateTime');
-      const endInput = document.getElementById('endDateTime');
       
       // Format for datetime-local input
       const formatForDateTimeLocal = (date) => {
@@ -352,12 +347,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (startInput) {
         startInput.value = formatForDateTimeLocal(now);
-      }
-      
-      // Set default end time to 2 hours later
-      if (endInput) {
-        const endTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-        endInput.value = formatForDateTimeLocal(endTime);
       }
     });
   }
@@ -746,22 +735,11 @@ function saveNewOperativeNote() {
   // Get form data
   const formData = {
     operation_datetime_start: document.getElementById('startDateTime').value || null,
-    operation_datetime_end: document.getElementById('endDateTime').value || null,
     title: document.getElementById('title').value,
-    text: selectedTemplate ? selectedTemplate.text : null,
-    status: 'draft'
+    text: selectedTemplate ? selectedTemplate.text : null
   };
   
-  // Validate end time is after start time
-  if (formData.operation_datetime_start && formData.operation_datetime_end) {
-    const startTime = new Date(formData.operation_datetime_start);
-    const endTime = new Date(formData.operation_datetime_end);
-    
-    if (endTime <= startTime) {
-      showToast('End time must be after start time', 'danger');
-      return;
-    }
-  }
+  // No need to validate end time since it's been removed
   
   // Show loading state
   const saveBtn = document.querySelector('button[onclick="saveNewOperativeNote()"]');

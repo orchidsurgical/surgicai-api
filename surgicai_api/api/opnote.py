@@ -13,9 +13,7 @@ class OpNoteSchema(Schema):
     id = StrictUUID(dump_only=True)
     owner_id = StrictUUID(dump_only=True)
     title = fields.Str(required=True)
-    status = fields.Enum(
-        OpNoteStatus, by_value=True, required=False, default=OpNoteStatus.DRAFT
-    )
+    status = fields.Enum(OpNoteStatus, by_value=True, dump_only=True)
     patient_id = fields.Str(allow_none=True)
     patient_first_name = fields.Str(allow_none=True)
     patient_last_name = fields.Str(allow_none=True)

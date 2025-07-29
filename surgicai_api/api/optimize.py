@@ -5,7 +5,7 @@ from flask_restful import Resource
 from marshmallow import Schema, fields
 
 from surgicai_api.api.fields import validate_uuid
-from surgicai_api.models.opnote import OpNote
+from surgicai_api.models.opnote import OpNote, OpNoteStatus
 from surgicai_api.services.optimization import (
     get_optimization_questions,
     get_optimization_suggestions,
@@ -74,12 +74,21 @@ class OptimizeNoteQuestionsResource(Resource):
         if not op_note:
             return {"message": "Not Found"}, 404
 
+        if not op_note.optimization_metadata.get("questions", []):
+            return {"message": "No optimization questions available"}, 400
+
         data = OptimizationMetadataAnswerSchema().load(request.json)
+
+        if len(data.get("selected_answers", [])) != len(
+            op_note.optimization_metadata.get("questions", [])
+        ):
+            return {
+                "message": "Selected answers length does not match questions length"
+            }, 400
+
         existing = deepcopy(op_note.optimization_metadata or {})
         for index, _ in enumerate(data.get("selected_answers", [])):
             answer = data.get("selected_answers")[index]
-            if index >= len(existing.get("questions", [])):
-                return {"message": f"Invalid answer index {index}"}, 400
             if answer not in existing["questions"][index]["potential_answers"]:
                 return {"message": f"Invalid answer for question {index}"}, 400
             existing["questions"][index]["selected_answer"] = answer
@@ -178,6 +187,7 @@ class OptimizeNoteSuggestionsResource(Resource):
             existing["suggested_edits"][index]["accepted"] = accepted
 
         op_note.optimization_metadata = existing
+        op_note.status = OpNoteStatus.OPTIMIZED
         g.db.add(op_note)
         g.db.commit()
 

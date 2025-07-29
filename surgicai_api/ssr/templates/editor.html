@@ -85,6 +85,33 @@
     backdrop-filter: blur(10px);
   }
   
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .status-badge.draft {
+    background: rgba(108, 117, 125, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .status-badge.optimized {
+    background: rgba(40, 167, 69, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .status-badge.signed {
+    background: rgba(0, 123, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
   .unsaved-indicator {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -685,32 +712,35 @@
           <i class="bi bi-exclamation-circle me-1"></i>Unsaved changes
         </span>
         <span id="lastUpdated">...</span>
-        <span id="menuButton" class="btn btn-sm btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-three-dots"></i>
+        <span class="status-badge" id="statusBadge">
+          <i class="bi bi-file-text me-1"></i>
+          <span id="statusText">Draft</span>
         </span>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="#" onclick="editPatientInfo()">
-            <i class="bi bi-pencil me-1"></i>
-            Edit Operation Info
-          </a></li>
-          <li><a class="dropdown-item" href="#" onclick="toggleHelpPanel()">
-            <i class="bi bi-question-circle me-1"></i>
-            Help & Shortcuts
-          </a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#" onclick="copyToClipboard()">
-            <i class="bi bi-clipboard me-1"></i>
-            Export to Clipboard
-          </a></li>
-        </ul>
+        <div class="dropdown">
+          <button id="menuButton" class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Menu
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="editPatientInfo()">
+              <i class="bi bi-pencil me-1"></i>
+              Edit Operation Info
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="toggleHelpPanel()">
+              <i class="bi bi-question-circle me-1"></i>
+              Help & Shortcuts
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" onclick="copyToClipboard()">
+              <i class="bi bi-clipboard me-1"></i>
+              Export to Clipboard
+            </a></li>
+          </ul>
+        </div>
       </div>
     </div>
     
     <div class="editor-toolbar">
       <div class="toolbar-group">
-        <button class="btn btn-sm btn-outline-primary" onclick="navigateToNextFieldButton()">
-          <i class="bi bi-arrow-right-circle me-1"></i>Next Field
-        </button>
         <button class="btn btn-sm btn-outline-primary" id="dictationButton" onclick="startDictation()">
           <i class="bi bi-mic me-1"></i>Start Dictation
         </button>
@@ -1057,9 +1087,45 @@
     });
   }
   
+  function updateStatusBadge(status) {
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    
+    if (!statusBadge || !statusText) return;
+    
+    // Remove existing status classes
+    statusBadge.classList.remove('draft', 'optimized', 'signed');
+    
+    // Update status text and styling based on status
+    switch(status) {
+      case 'draft':
+        statusText.textContent = 'Draft';
+        statusBadge.classList.add('draft');
+        statusBadge.querySelector('i').className = 'bi bi-file-text me-1';
+        break;
+      case 'optimized':
+        statusText.textContent = 'Optimized';
+        statusBadge.classList.add('optimized');
+        statusBadge.querySelector('i').className = 'bi bi-magic me-1';
+        break;
+      case 'signed':
+        statusText.textContent = 'Signed';
+        statusBadge.classList.add('signed');
+        statusBadge.querySelector('i').className = 'bi bi-check-circle me-1';
+        break;
+      default:
+        statusText.textContent = 'Unknown';
+        statusBadge.classList.add('draft');
+        statusBadge.querySelector('i').className = 'bi bi-question-circle me-1';
+    }
+  }
+  
   function populateDocument(note) {
     // Update header
     document.getElementById('documentTitle').value = note.title || '';
+    
+    // Update status badge
+    updateStatusBadge(note.status);
     
     // Update last updated with better formatting
     const lastUpdated = note.updated_at ? 
@@ -1203,6 +1269,9 @@
       hasUnsavedChanges = false;
       updateSaveIndicator('saved');
       
+      // Update status badge if status changed
+      updateStatusBadge(data.status);
+      
       // Remove modified class from title
       const titleInput = document.getElementById('documentTitle');
       if (titleInput) {
@@ -1285,6 +1354,9 @@
     .then(data => {
       console.log('Patient info saved:', data);
       currentNote = data;
+      
+      // Update status badge if status changed
+      updateStatusBadge(data.status);
       
       const formatDate = (dateStr) => {
         if (!dateStr) return '-';
@@ -1715,15 +1787,6 @@
         editorContainer.classList.add('panel-open');
         helpToggleBtn.classList.add('panel-open');
       }
-    }
-  }
-  
-  function navigateToNextFieldButton() {
-    // Call the global navigation function from editor_fields.js
-    if (window.navigateToNextField) {
-      window.navigateToNextField(false); // false = forward direction
-    } else {
-      showToast('Field navigation not available', 'warning');
     }
   }
   

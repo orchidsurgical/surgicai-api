@@ -15,7 +15,8 @@ class OpNoteStatus(str, Enum):
     """Enum for operative note statuses."""
 
     DRAFT = "draft"
-    SUBMITTED = "submitted"
+    OPTIMIZED = "optimized"
+    SIGNED = "signed"
 
 
 class OpNote(BaseModel):

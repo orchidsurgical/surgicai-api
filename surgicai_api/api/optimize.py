@@ -7,6 +7,7 @@ from marshmallow import Schema, fields
 from surgicai_api.api.fields import validate_uuid
 from surgicai_api.models.opnote import OpNote, OpNoteStatus
 from surgicai_api.services.optimization import (
+    apply_optimization_suggestions_to_text,
     get_optimization_questions,
     get_optimization_suggestions,
 )
@@ -188,6 +189,9 @@ class OptimizeNoteSuggestionsResource(Resource):
 
         op_note.optimization_metadata = existing
         op_note.status = OpNoteStatus.OPTIMIZED
+        op_note.text = apply_optimization_suggestions_to_text(
+            op_note.text, existing["suggested_edits"]
+        )
         g.db.add(op_note)
         g.db.commit()
 

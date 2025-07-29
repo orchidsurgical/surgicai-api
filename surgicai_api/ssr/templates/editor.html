@@ -1803,6 +1803,9 @@
     }
   }
   
+  // Export loadDocument function globally for use by optimizer
+  window.loadDocument = loadDocument;
+  
   // Clean up on page unload
   window.addEventListener('beforeunload', () => {
     if (autoSaveInterval) {

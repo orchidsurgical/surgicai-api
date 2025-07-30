@@ -96,28 +96,29 @@
                 }
                 
                 .progress-dot.answered {
-                    background-color: #28a745;
+                    background-color: var(--primary-color, #0066cc);
                 }
                 
                 .progress-dot.answered.active {
                     background-color: var(--primary-color, #0066cc);
+                    transform: scale(1.2);
                 }
                 
                 .progress-dot.accepted {
-                    background-color: #28a745;
+                    background-color: var(--primary-color, #0066cc);
                 }
                 
                 .progress-dot.rejected {
-                    background-color: #dc3545;
+                    background-color: var(--primary-color, #0066cc);
                 }
                 
                 .progress-dot.accepted.active {
-                    background-color: #198754;
+                    background-color: var(--primary-color, #0066cc);
                     transform: scale(1.2);
                 }
                 
                 .progress-dot.rejected.active {
-                    background-color: #dc3545;
+                    background-color: var(--primary-color, #0066cc);
                     transform: scale(1.2);
                 }
                 
@@ -134,7 +135,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="optimizationModalLabel">
-                                <i class="bi bi-magic me-2"></i>Optimize Your Operative Note
+                                <i class="bi bi-check-circle me-2"></i>Validate Your Operative Note
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -154,7 +155,7 @@
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading optimization questions...</span>
                                 </div>
-                                <p class="mt-3">Loading optimization questions...</p>
+                                <p class="mt-3">Loading validation questions...</p>
                             </div>
                             <div id="optimizationContent" style="display: none;">
                                 <!-- Questions will be loaded here -->
@@ -209,7 +210,7 @@
         const contentDiv = document.getElementById('optimizationContent');
 
         if (!data.questions || data.questions.length === 0) {
-            displayOptimizationError('No optimization questions available for this note.');
+            displayOptimizationError('No validation questions available for this note.');
             return;
         }
 
@@ -399,7 +400,7 @@
         // Update progress bar to 75% (ready for final stage)
         updateProgressBar(75, 'Submitting answers...');
         
-        // Show optimization in progress UI
+        // Show validation in progress UI
         const optimizationInProgressHTML = `
             <div class="text-center py-5">
                 <div class="mb-4">
@@ -409,7 +410,7 @@
                 </div>
                 <h4 class="mb-3">Submitting Your Answers</h4>
                 <p class="text-muted mb-0">
-                    Saving your responses and preparing to generate optimizations...
+                    Saving your responses and preparing to generate validations...
                 </p>
             </div>
         `;
@@ -449,20 +450,20 @@
             console.log('Optimization answers submitted successfully:', result);
 
             // Now proceed to generate suggestions
-            updateProgressBar(75, 'Generating optimizations...');
+            updateProgressBar(75, 'Generating validations...');
             
-            // Update UI to show generating optimizations
+            // Update UI to show generating validations
             const questionContainer = document.getElementById('questionContainer');
             const optimizationInProgressHTML = `
                 <div class="text-center py-5">
                     <div class="mb-4">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                            <span class="visually-hidden">Generating optimizations...</span>
+                            <span class="visually-hidden">Generating validations...</span>
                         </div>
                     </div>
-                    <h4 class="mb-3">Generating Optimizations</h4>
+                    <h4 class="mb-3">Generating Validations</h4>
                     <p class="text-muted mb-0">
-                        Our AI is analyzing your responses and generating personalized optimizations for your operative note...
+                        Our AI is analyzing your responses and generating personalized validations for your operative note...
                     </p>
                 </div>
             `;
@@ -472,7 +473,7 @@
             generateOptimizationSuggestions();
 
         } catch (error) {
-            console.error('Error submitting optimization answers:', error);
+            console.error('Error submitting validation answers:', error);
             showOptimizationError('Failed to submit answers: ' + error.message);
         }
     }
@@ -500,51 +501,18 @@
             }
 
             const suggestions = await response.json();
-            console.log('Optimization suggestions received:', suggestions);
+            console.log('Validation suggestions received:', suggestions);
 
             // Store suggestions globally for later use
             window.optimizationSuggestions = suggestions;
 
-            // Show completion state
-            showOptimizationComplete();
+            // Go directly to reviewing suggested changes
+            reviewSuggestedChanges();
 
         } catch (error) {
-            console.error('Error generating optimization suggestions:', error);
+            console.error('Error generating validation suggestions:', error);
             showOptimizationError(error.message);
         }
-    }
-
-    /**
-     * Shows the optimization complete state with review button.
-     */
-    function showOptimizationComplete() {
-        const questionContainer = document.getElementById('questionContainer');
-        
-        // Update progress bar to 100%
-        updateProgressBar(100, 'Optimizations complete!');
-        
-        // Show completion UI
-        const completionHTML = `
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                </div>
-                <h4 class="mb-3">Optimizations Complete!</h4>
-                <p class="text-muted mb-4">
-                    Your operative note has been analyzed and optimized. Review the suggested changes to improve clarity and completeness.
-                </p>
-                <div class="d-flex justify-content-center gap-3">
-                    <button type="button" class="btn btn-outline-secondary" onclick="showQuestionReview()">
-                        <i class="bi bi-arrow-left me-1"></i>Review Answers
-                    </button>
-                    <button type="button" class="btn btn-primary btn-lg" onclick="reviewSuggestedChanges()">
-                        <i class="bi bi-eye me-2"></i>Review Suggested Changes
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        questionContainer.innerHTML = completionHTML;
     }
 
     /**
@@ -554,7 +522,7 @@
         const questionContainer = document.getElementById('questionContainer');
         
         // Reset progress bar
-        updateProgressBar(75, 'Error generating optimizations');
+        updateProgressBar(75, 'Error generating validations');
         
         // Show error UI
         const errorHTML = `
@@ -562,7 +530,7 @@
                 <div class="mb-4">
                     <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
                 </div>
-                <h4 class="mb-3">Optimization Failed</h4>
+                <h4 class="mb-3">Validation Failed</h4>
                 <p class="text-muted mb-4">
                     ${errorMessage}
                 </p>
@@ -586,7 +554,8 @@
     function reviewSuggestedChanges() {
         const questionContainer = document.getElementById('questionContainer');
         const progressDots = document.getElementById('progressDots');
-        
+        updateProgressBar(75, 'Review suggested changes...');
+
         // Check if we have suggestions data
         if (!window.optimizationSuggestions || !window.optimizationSuggestions.suggested_edits) {
             showOptimizationError('No suggestions available to review.');
@@ -604,7 +573,7 @@
                     </div>
                     <h4 class="mb-3">No Changes Needed!</h4>
                     <p class="text-muted mb-4">
-                        Your operative note is already well-optimized. No suggestions were generated.
+                        Your operative note is already well-validated. No suggestions were generated.
                     </p>
                     <button type="button" class="btn btn-primary" onclick="hideOptimizationModal()">
                         <i class="bi bi-check me-2"></i>Close
@@ -750,6 +719,15 @@
     function advanceToNextSuggestion() {
         updateSuggestionProgressDots();
         
+        // Update progress bar based on reviewed suggestions
+        const totalSuggestions = window.optimizationSuggestions.suggested_edits.length;
+        const reviewedSuggestions = window.currentSuggestionIndex + 1; // +1 because we just reviewed the current one
+        const suggestionProgressRange = 25; // Suggestions take up 25% of total progress (75% to 100%)
+        const suggestionProgress = (reviewedSuggestions / totalSuggestions) * suggestionProgressRange;
+        const currentProgress = 75 + suggestionProgress; // Start from 75% and add suggestion progress
+        
+        updateProgressBar(currentProgress, 'Reviewing suggestions...');
+        
         // Check if there are more suggestions
         if (window.currentSuggestionIndex < window.optimizationSuggestions.suggested_edits.length - 1) {
             // Move to next suggestion after a short delay
@@ -772,6 +750,9 @@
         const noteId = window.currentOptimizationNoteId;
         const questionContainer = document.getElementById('questionContainer');
         const progressDots = document.getElementById('progressDots');
+        
+        // Set progress bar to 100% since all suggestions have been reviewed
+        updateProgressBar(100, 'Applying changes...');
         
         // Hide progress dots
         if (progressDots) {
@@ -832,53 +813,6 @@
     }
 
     /**
-     * Applies accepted suggestions to the Quill editor.
-     * 
-     * NOTE: This function is no longer used as we now reload the entire document
-     * from the server after suggestions are submitted to ensure consistency.
-     */
-    /*
-    function applyAcceptedSuggestions() {
-        if (!window.quill) return;
-        
-        const suggestions = window.optimizationSuggestions.suggested_edits;
-        
-        // Apply suggestions in reverse order to maintain text positions
-        for (let i = suggestions.length - 1; i >= 0; i--) {
-            if (window.suggestionDecisions[i] === true) {
-                const suggestion = suggestions[i];
-                
-                try {
-                    // Get current content
-                    const currentText = window.quill.getText();
-                    
-                    // Find the text to replace using the position
-                    const startPos = suggestion.text_position.start;
-                    const endPos = suggestion.text_position.end;
-                    
-                    // Validate positions
-                    if (startPos >= 0 && endPos <= currentText.length && startPos <= endPos) {
-                        // Delete the old text and insert the new text
-                        window.quill.deleteText(startPos, endPos - startPos, 'user');
-                        window.quill.insertText(startPos, suggestion.suggested_text, 'user');
-                    }
-                } catch (error) {
-                    console.error('Error applying suggestion:', error);
-                }
-            }
-        }
-        
-        // Mark as unsaved
-        if (window.hasUnsavedChanges !== undefined) {
-            window.hasUnsavedChanges = true;
-        }
-        if (window.updateSaveIndicator) {
-            window.updateSaveIndicator('modified');
-        }
-    }
-    */
-
-    /**
      * Shows the successful submission completion state.
      */
     function showSuggestionSubmissionComplete() {
@@ -892,7 +826,7 @@
                 <div class="mb-4">
                     <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
                 </div>
-                <h4 class="mb-3">Optimization Complete!</h4>
+                <h4 class="mb-3">Validation Complete!</h4>
                 <p class="text-muted mb-4">
                     ${acceptedCount} suggestion${acceptedCount !== 1 ? 's' : ''} accepted, 
                     ${rejectedCount} suggestion${rejectedCount !== 1 ? 's' : ''} rejected.

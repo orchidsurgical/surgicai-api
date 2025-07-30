@@ -189,6 +189,9 @@ class OptimizeNoteSuggestionsResource(Resource):
 
         op_note.optimization_metadata = existing
         op_note.status = OpNoteStatus.OPTIMIZED
+        g.db.add(op_note)
+        g.db.flush()
+
         op_note.text = apply_optimization_suggestions_to_text(
             op_note.text, existing["suggested_edits"]
         )

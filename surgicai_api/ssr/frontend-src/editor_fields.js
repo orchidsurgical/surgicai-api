@@ -281,7 +281,7 @@
      */
     function createAIFieldComponentHtml(fieldName, content) {
         const componentId = `aifield-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        content = content || '***'; // Ensure content is defined
+        content = content || '{auto-generated field}'; // Ensure content is defined
         
         const html = `<span class="aifield-component" data-field-text="[aifield: ${fieldName}][/aifield]" data-field-name="${fieldName}" id="${componentId}" contenteditable="false" style="display: inline-block; background: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; padding: 2px 6px 4px 6px; margin: 0 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; cursor: default; vertical-align: baseline; line-height: 1.2; isolation: isolate;">
             <span class="field-content" style="display: block; font-size: 1em; color: #1e40af; font-weight: 500; line-height: 1; word-wrap: break-word; white-space: pre-wrap; cursor: text; outline: none; caret-color: #1e40af;" contenteditable="true">${content}</span>

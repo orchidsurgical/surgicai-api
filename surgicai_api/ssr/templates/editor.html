@@ -595,10 +595,10 @@
   
   .field-component .field-content {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     color: #92400e;
-    font-weight: 500;
-    line-height: 1;
+    font-weight: 400;
+    line-height: 1.6 !important;
   }
   
   .field-component:hover {
@@ -747,7 +747,7 @@
       </div>
       <div class="action-buttons">
         <button class="btn btn-sm btn-primary" onclick="optimizeNote()">
-          <i class="bi bi-magic me-1"></i>Optimize Note
+          <i class="bi bi-check-circle me-1"></i>Validate & Code
         </button>
         <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
           <i class="bi bi-save me-1"></i>Save
@@ -961,9 +961,9 @@
   <i class="bi bi-question-circle"></i>
 </button>
 
-<!-- Optimize Note Button -->
+<!-- Validate Note Button -->
 <button class="optimize-fab" onclick="optimizeNote()">
-  <i class="bi bi-magic me-1"></i>Optimize Note
+  <i class="bi bi-check-circle me-1"></i>Validate & Code
 </button>
 {% endblock %}
 
@@ -1104,7 +1104,7 @@
         statusBadge.querySelector('i').className = 'bi bi-file-text me-1';
         break;
       case 'optimized':
-        statusText.textContent = 'Optimized';
+        statusText.textContent = 'Validated & Coded';
         statusBadge.classList.add('optimized');
         statusBadge.querySelector('i').className = 'bi bi-magic me-1';
         break;
@@ -1518,17 +1518,6 @@
           }
         }
         
-        // Ctrl/Cmd+F to insert a new field
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-          e.preventDefault();
-          window.QuillFieldBlot.insertField(quill);
-        }
-        
-        // Ctrl/Cmd+Shift+F to convert selected text to field
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
-          e.preventDefault();
-          window.QuillFieldBlot.convertToField(quill);
-        }
       }
     });
   }
@@ -1794,12 +1783,12 @@
     // Get the current note ID from the template
     const noteId = '{{ note_id }}';
     
-    // Call the optimization modal function from optimizer.js
+    // Call the validation modal function from optimizer.js
     if (window.showOptimizationModal) {
       window.showOptimizationModal(noteId);
     } else {
-      console.error('Optimization module not loaded');
-      showToast('Optimization feature not available', 'danger');
+      console.error('Validation module not loaded');
+      showToast('Validation feature not available', 'danger');
     }
   }
   

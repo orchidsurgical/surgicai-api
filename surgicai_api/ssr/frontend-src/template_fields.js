@@ -646,7 +646,7 @@ function createSlashMenuWithFilter(filterText = '') {
         menuItem.addEventListener('click', () => {
             hideSlashMenu();
             if (option.action === 'field') {
-                showFieldNameInput();
+                insertSimpleField();
             } else if (option.action === 'ai') {
                 showAIFieldOptions();
             }
@@ -937,6 +937,54 @@ function createAIFieldComponentHtml(fieldName) {
     
     console.log('Generated AI field HTML:', html);
     return html;
+}
+
+/**
+ * Insert a simple *** field without asking for a name
+ */
+function insertSimpleField() {
+    // Simply insert *** without asking for a name
+    const quill = currentQuillInstance;
+    if (!quill) return;
+
+    // Get current selection
+    const selection = quill.getSelection(true);
+    if (selection) {
+        // Look backwards from cursor to find the slash
+        let slashIndex = -1;
+        const currentIndex = selection.index;
+        
+        // Search backwards for the slash character
+        for (let i = currentIndex - 1; i >= 0; i--) {
+            const char = quill.getText(i, 1);
+            if (char === '/') {
+                slashIndex = i;
+                break;
+            }
+            // Stop if we hit whitespace or newline (slash should be recent)
+            if (char === ' ' || char === '\n' || char === '\t') {
+                break;
+            }
+        }
+        
+        if (slashIndex !== -1) {
+            // Remove everything from the slash to the current cursor position
+            const lengthToRemove = currentIndex - slashIndex;
+            quill.deleteText(slashIndex, lengthToRemove, 'silent');
+            // Insert *** at the position where slash was
+            quill.insertText(slashIndex, '***', 'silent');
+            quill.setSelection(slashIndex + 3, 0, 'silent');
+        } else {
+            // No slash found, just insert at current position
+            quill.insertText(currentIndex, '***', 'silent');
+            quill.setSelection(currentIndex + 3, 0, 'silent');
+        }
+    } else {
+        // No selection, insert at end of document
+        const length = quill.getLength();
+        quill.insertText(length - 1, '***', 'silent');
+        quill.setSelection(length - 1 + 3, 0, 'silent');
+    }
 }
 
 /**
@@ -1273,6 +1321,7 @@ window.importWithFields = importWithFields;
 window.handleFieldShortcuts = handleFieldShortcuts;
 window.showSlashMenu = showSlashMenu;
 window.showFieldNameInput = showFieldNameInput;
+window.insertSimpleField = insertSimpleField;
 window.showAIFieldOptions = showAIFieldOptions;
 window.insertFieldIntoDocument = insertFieldIntoDocument;
 window.setupFieldEventListeners = setupFieldEventListeners;

@@ -889,13 +889,13 @@
           </div>
         </div>
         <div class="keyboard-shortcut">
-          <span class="shortcut-description">Navigate to next field</span>
+          <span class="shortcut-description">Navigate to next field or *** marker</span>
           <div class="shortcut-keys">
             <span class="shortcut-key">Tab</span>
           </div>
         </div>
         <div class="keyboard-shortcut">
-          <span class="shortcut-description">Navigate to previous field</span>
+          <span class="shortcut-description">Navigate to previous field or *** marker</span>
           <div class="shortcut-keys">
             <span class="shortcut-key">Shift</span>
             <span class="shortcut-key">Tab</span>
@@ -938,8 +938,9 @@
         Field Navigation
       </div>
       <div class="help-section-content">
-        <p>Navigate between field components in your document using keyboard shortcuts or the toolbar button.</p>
-        <p>When exporting, the fields will appear as plain text for import into Epic or other EHR systems.</p>
+        <p>Navigate between field components and *** markers in your document using keyboard shortcuts.</p>
+        <p>The Tab key will cycle through all field components and *** text markers in document order.</p>
+        <p>When exporting, the field components will appear as plain text for import into Epic or other EHR systems.</p>
       </div>
     </div>
     
@@ -1022,7 +1023,12 @@
         modules: {
           toolbar: false, // Completely disable toolbar
           keyboard: {
-            bindings: {}
+            bindings: {
+              // Disable default tab behavior but allow event to bubble up
+              tab: false,
+              // Disable shift+tab behavior but allow event to bubble up
+              'shift tab': false
+            }
           }
         },
         formats: ['field'], // Allow field format
@@ -1481,40 +1487,9 @@
       if (quill) {
         // Tab to go to next field - use our custom field navigation
         if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey) {
-          // Check if we're currently in a field component
-          const activeElement = document.activeElement;
-          if (activeElement && activeElement.classList.contains('field-content')) {
-            e.preventDefault();
-            if (window.navigateToNextField) {
-              window.navigateToNextField(e.shiftKey);
-            }
-            return;
-          }
-          
-          // If not in a field but fields exist on the page, navigate to first field
-          const allFieldContents = document.querySelectorAll('.field-content');
-          if (allFieldContents.length > 0 && window.navigateToNextField) {
-            // Only intercept if we're not in an input/textarea/contenteditable that needs tab
-            const tagName = activeElement?.tagName?.toLowerCase();
-            const isContentEditable = activeElement?.contentEditable === 'true';
-            const needsTabNavigation = ['input', 'textarea', 'select', 'button'].includes(tagName) || 
-                                       (isContentEditable && !activeElement.classList.contains('ql-editor'));
-            
-            if (!needsTabNavigation) {
-              e.preventDefault();
-              window.navigateToNextField(e.shiftKey);
-              return;
-            }
-          }
-          
-          // If we have the old QuillFieldBlot system, use it as fallback
-          if (window.QuillFieldBlot) {
-            e.preventDefault();
-            if (e.shiftKey) {
-              window.QuillFieldBlot.goToPreviousField(quill);
-            } else {
-              window.QuillFieldBlot.goToNextField(quill);
-            }
+          e.preventDefault();
+          if (window.navigateToNextField) {
+            window.navigateToNextField(e.shiftKey);
           }
         }
         

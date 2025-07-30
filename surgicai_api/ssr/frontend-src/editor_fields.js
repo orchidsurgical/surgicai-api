@@ -356,67 +356,190 @@
     }
 
     /**
-     * Global Tab navigation function to move between field components on the page
+     * Global Tab navigation function to move between field components and *** markers on the page
      * @param {boolean} reverse - Whether to go to previous field (Shift+Tab)
      */
     function navigateToNextField(reverse = false) {
         // Find all field content elements in the document
         const allFieldContents = document.querySelectorAll('.field-content');
         
-        if (allFieldContents.length === 0) {
-            return false; // No fields found
-        }
+        // Find all *** text markers in the document
+        const quill = currentQuillInstance;
+        const editorElement = quill ? quill.container.querySelector('.ql-editor') : document.querySelector('.ql-editor');
+        const allAsterisks = [];
         
-        // Find the currently focused field
-        const activeElement = document.activeElement;
-        let currentIndex = -1;
-        
-        // Check if the active element is a field content element
-        if (activeElement && activeElement.classList.contains('field-content')) {
-            currentIndex = Array.from(allFieldContents).indexOf(activeElement);
-        }
-        
-        // Determine next field index
-        let nextIndex;
-        if (currentIndex === -1) {
-            // No field currently focused, go to first or last
-            nextIndex = reverse ? allFieldContents.length - 1 : 0;
-        } else {
-            // Calculate next index with wrap-around
-            if (reverse) {
-                nextIndex = (currentIndex - 1 + allFieldContents.length) % allFieldContents.length;
-            } else {
-                nextIndex = (currentIndex + 1) % allFieldContents.length;
+        if (editorElement) {
+            // Create a tree walker to find all text nodes
+            const walker = document.createTreeWalker(
+                editorElement,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        // Accept text nodes that contain *** and are not inside field components
+                        if (node.textContent.includes('***') && 
+                            !node.parentElement.closest('.field-component, .aifield-component')) {
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                },
+                false
+            );
+            
+            let textNode;
+            while (textNode = walker.nextNode()) {
+                const text = textNode.textContent;
+                let match;
+                const regex = /\*\*\*/g;
+                
+                while ((match = regex.exec(text)) !== null) {
+                    allAsterisks.push({
+                        textNode: textNode,
+                        startOffset: match.index,
+                        endOffset: match.index + 3
+                    });
+                }
             }
         }
         
-        const nextField = allFieldContents[nextIndex];
-        if (nextField) {
-            // Focus the next field
-            nextField.focus();
+        // Combine field components and *** markers, then sort by document position
+        const allNavigationTargets = [];
+        
+        // Add field components
+        allFieldContents.forEach(field => {
+            allNavigationTargets.push({
+                type: 'field',
+                element: field,
+                position: getDocumentPosition(field)
+            });
+        });
+        
+        // Add *** markers
+        allAsterisks.forEach(asterisk => {
+            allNavigationTargets.push({
+                type: 'asterisk',
+                textNode: asterisk.textNode,
+                startOffset: asterisk.startOffset,
+                endOffset: asterisk.endOffset,
+                position: getDocumentPosition(asterisk.textNode)
+            });
+        });
+        
+        if (allNavigationTargets.length === 0) {
+            return false; // No navigation targets found
+        }
+        
+        // Sort by document position
+        allNavigationTargets.sort((a, b) => a.position - b.position);
+        
+        // Find current position
+        const activeElement = document.activeElement;
+        const selection = window.getSelection();
+        let currentIndex = -1;
+        
+        // Check if we're currently in a field component
+        if (activeElement && activeElement.classList.contains('field-content')) {
+            currentIndex = allNavigationTargets.findIndex(target => 
+                target.type === 'field' && target.element === activeElement
+            );
+        } 
+        // Check if we're currently at a *** marker
+        else if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const startNode = range.startContainer;
+            const startOffset = range.startOffset;
             
-            // Position cursor appropriately
-            setTimeout(() => {
+            currentIndex = allNavigationTargets.findIndex(target => 
+                target.type === 'asterisk' && 
+                target.textNode === startNode &&
+                startOffset >= target.startOffset && 
+                startOffset <= target.endOffset
+            );
+        }
+        
+        // Determine next target index
+        let nextIndex;
+        if (currentIndex === -1) {
+            // No target currently focused, go to first or last
+            nextIndex = reverse ? allNavigationTargets.length - 1 : 0;
+        } else {
+            // Calculate next index with wrap-around
+            if (reverse) {
+                nextIndex = (currentIndex - 1 + allNavigationTargets.length) % allNavigationTargets.length;
+            } else {
+                nextIndex = (currentIndex + 1) % allNavigationTargets.length;
+            }
+        }
+        
+        const nextTarget = allNavigationTargets[nextIndex];
+        if (nextTarget) {
+            if (nextTarget.type === 'field') {
+                // Focus the field component
+                nextTarget.element.focus();
+                
+                // Position cursor appropriately
+                setTimeout(() => {
+                    const range = document.createRange();
+                    const selection = window.getSelection();
+                    
+                    // If the content is just ***, select it all
+                    if (nextTarget.element.textContent.trim() === '***') {
+                        range.selectNodeContents(nextTarget.element);
+                    } else {
+                        // Otherwise, position cursor at the end
+                        range.selectNodeContents(nextTarget.element);
+                        range.collapse(false); // Collapse to end
+                    }
+                    
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }, 1);
+            } else if (nextTarget.type === 'asterisk') {
+                // Navigate to *** marker and select the entire *** text
                 const range = document.createRange();
                 const selection = window.getSelection();
                 
-                // If the content is just ***, select it all
-                if (nextField.textContent.trim() === '***') {
-                    range.selectNodeContents(nextField);
-                } else {
-                    // Otherwise, position cursor at the end
-                    range.selectNodeContents(nextField);
-                    range.collapse(false); // Collapse to end
-                }
+                // Select the entire *** marker
+                range.setStart(nextTarget.textNode, nextTarget.startOffset);
+                range.setEnd(nextTarget.textNode, nextTarget.endOffset);
                 
                 selection.removeAllRanges();
                 selection.addRange(range);
-            }, 1);
+                
+                // Ensure the editor has focus
+                if (quill) {
+                    quill.focus();
+                }
+            }
             
             return true; // Successfully navigated
         }
         
         return false; // Failed to navigate
+    }
+    
+    /**
+     * Get the document position of an element or text node for sorting
+     * @param {Node} node - The node to get position for
+     * @returns {number} The document position
+     */
+    function getDocumentPosition(node) {
+        let position = 0;
+        const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_ALL,
+            null,
+            false
+        );
+        
+        let currentNode;
+        while (currentNode = walker.nextNode()) {
+            if (currentNode === node) {
+                return position;
+            }
+            position++;
+        }
+        return position;
     }
 
     /**

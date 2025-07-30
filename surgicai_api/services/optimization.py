@@ -174,4 +174,4 @@ def generate_procedures(text: str, should_insert: bool = False) -> str:
         )
         return text
 
-    return procedure_text
+    return procedures

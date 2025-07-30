@@ -75,6 +75,13 @@
         }
         
         // Find all text nodes that contain field patterns
+        // Since Quill wraps lines in <p> tags, we need to work directly with the DOM
+        // and reconstruct the text while keeping track of positions
+        
+        // First, build a map of text positions to DOM nodes
+        const textNodeMap = [];
+        let totalTextLength = 0;
+        
         const walker = document.createTreeWalker(
             editorElement,
             NodeFilter.SHOW_TEXT,
@@ -82,152 +89,171 @@
             false
         );
         
-        const textNodes = [];
-        let node;
-        while (node = walker.nextNode()) {
-            // Check if this text node contains a field pattern (regular or AI field)
-            if (/\[(ai)?field:\s*([^\]]+)\]([\s\S]*?)\[\/(?:\1)?field\]/.test(node.textContent)) {
-                textNodes.push(node);
-            }
+        let textNode;
+        while (textNode = walker.nextNode()) {
+            const nodeText = textNode.textContent;
+            textNodeMap.push({
+                node: textNode,
+                startPos: totalTextLength,
+                endPos: totalTextLength + nodeText.length,
+                text: nodeText
+            });
+            totalTextLength += nodeText.length;
         }
         
-        // Only proceed if we actually found fields to process
-        if (textNodes.length === 0) {
+        // Instead of trying to reconstruct text with artificial newlines, 
+        // let's work directly with the HTML and find field patterns there
+        let htmlContent = editorElement.innerHTML;
+        
+        // Convert HTML to a searchable text format while preserving structure info
+        // Replace <p> tags with newlines, but track where they came from
+        let searchableText = htmlContent;
+        
+        // First, protect any existing field components from being processed
+        const existingFieldComponents = editorElement.querySelectorAll('.field-component, .aifield-component');
+        if (existingFieldComponents.length > 0) {
+            console.log('Existing field components found, skipping styling');
             isApplyingStyling = false;
             return;
         }
         
-        // Process each text node that contains field patterns
-        textNodes.forEach(textNode => {
-            const text = textNode.textContent;
-            // Updated regex: matches [field: field name]content[/field] and [aifield: field name]content[/aifield]
-            const fieldRegex = /\[(ai)?field:\s*([^\]]+)\]([\s\S]*?)\[\/(?:\1)?field\]/g;
-            let match;
-            const replacements = [];
+        // Convert HTML to plain text for pattern matching, preserving paragraph structure
+        searchableText = searchableText.replace(/<br\s*\/?>/gi, '\n');
+        searchableText = searchableText.replace(/<\/p><p[^>]*>/gi, '\n');
+        searchableText = searchableText.replace(/<p[^>]*>/gi, '');
+        searchableText = searchableText.replace(/<\/p>/gi, '');
+        
+        // Remove other HTML tags for clean text search
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = searchableText;
+        const completeText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        console.log('Searchable text:', JSON.stringify(completeText));
+        
+        // Check if there are any field patterns in the complete text
+        const hasFields = /\[(ai)?field:\s*([^\]]+?)\]([\s\S]*?)\[\/(?:\1)?field\]/s.test(completeText);
+        
+        if (!hasFields) {
+            isApplyingStyling = false;
+            return;
+        }
+        
+        // Get all field patterns
+        const fieldMatches = [];
+        const fieldRegex = /\[(ai)?field:\s*([^\]]+?)\]([\s\S]*?)\[\/(?:\1)?field\]/gs;
+        let match;
+        
+        while ((match = fieldRegex.exec(completeText)) !== null) {
+            fieldMatches.push({
+                fullMatch: match[0],
+                fieldName: match[2].trim(),
+                content: match[3],
+                isAIField: match[1] === 'ai',
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
+            });
+        }
+        
+        if (fieldMatches.length === 0) {
+            isApplyingStyling = false;
+            return;
+        }
+        
+        // Process field matches by directly manipulating HTML
+        // This avoids the complex position mapping issues
+        let currentHTML = editorElement.innerHTML;
+        
+        // Process in reverse order to avoid position shifts
+        fieldMatches.reverse().forEach(fieldMatch => {
+            // Create the field component HTML
+            const fieldComponentHTML = fieldMatch.isAIField 
+                ? createAIFieldComponentHtml(fieldMatch.fieldName, fieldMatch.content)
+                : createFieldComponentHtml(fieldMatch.fieldName, fieldMatch.content);
             
-            while ((match = fieldRegex.exec(text)) !== null) {
-                replacements.push({
-                    fullMatch: match[0],
-                    fieldName: match[2].trim(),
-                    content: match[3],
-                    isAIField: match[1] === 'ai',
-                    startIndex: match.index,
-                    endIndex: match.index + match[0].length
-                });
-            }
+            // Create a more flexible regex to find the field in HTML
+            // This accounts for the fact that HTML might have <p> tags breaking up the field
+            const fieldPattern = new RegExp(
+                '\\[' + (fieldMatch.isAIField ? 'ai' : '') + 'field:\\s*' +
+                fieldMatch.fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+                '\\]([\\s\\S]*?)\\[\\/' + (fieldMatch.isAIField ? 'ai' : '') + 'field\\]',
+                'i'
+            );
             
-            // If we found field patterns in this text node, replace them
-            if (replacements.length > 0) {
-                const parent = textNode.parentNode;
-                let currentText = text;
-                let offset = 0;
-                
-                replacements.forEach(replacement => {
-                    // Create a temporary container to hold the new HTML
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = replacement.isAIField 
-                        ? createAIFieldComponentHtml(replacement.fieldName, replacement.content)
-                        : createFieldComponentHtml(replacement.fieldName, replacement.content);
-                    const fieldComponent = tempDiv.firstChild;
-                    
-                    // Split the text node at the field boundaries
-                    const beforeText = currentText.substring(0, replacement.startIndex - offset);
-                    const afterText = currentText.substring(replacement.endIndex - offset);
-                    
-                    // Create new text nodes if needed
-                    if (beforeText) {
-                        const beforeNode = document.createTextNode(beforeText);
-                        parent.insertBefore(beforeNode, textNode);
-                    }
-                    
-                    // Insert the field component
-                    parent.insertBefore(fieldComponent, textNode);
-                    
-                    // Add event listener to handle empty content
-                    const fieldContentElement = fieldComponent.querySelector('.field-content');
-                    if (fieldContentElement && !fieldContentElement.hasAttribute('data-listeners-added')) {
-                        fieldContentElement.addEventListener('input', function() {
-                            if (this.textContent.trim() === '') {
-                                this.textContent = '***';
+            // Replace the field text with the component in the HTML
+            currentHTML = currentHTML.replace(fieldPattern, fieldComponentHTML);
+        });
+        
+        // Update the editor content
+        editorElement.innerHTML = currentHTML;
+        
+        // Add event listeners to all field components
+        const allFieldComponents = editorElement.querySelectorAll('.field-component, .aifield-component');
+        allFieldComponents.forEach(fieldComponent => {
+            const fieldContentElement = fieldComponent.querySelector('.field-content');
+            if (fieldContentElement && !fieldContentElement.hasAttribute('data-listeners-added')) {
+                fieldContentElement.addEventListener('input', function() {
+                    if (this.textContent.trim() === '') {
+                        this.textContent = '***';
 
-                                // Select all the *** text
-                                const range = document.createRange();
-                                const selection = window.getSelection();
-                                range.selectNodeContents(this);
-                                selection.removeAllRanges();
-                                selection.addRange(range);
-                            }
-                        });
-                        
-                        fieldContentElement.addEventListener('focus', function() {
-                            // If the content is just the placeholder ***, select it for easy overwriting
-                            if (this.textContent.trim() === '***') {
-                                setTimeout(() => {
-                                    const range = document.createRange();
-                                    const selection = window.getSelection();
-                                    range.selectNodeContents(this);
-                                    selection.removeAllRanges();
-                                    selection.addRange(range);
-                                }, 1); // Small delay to ensure focus is fully established
-                            }
-                        });
-                        
-                        fieldContentElement.addEventListener('blur', function() {
-                            if (this.textContent.trim() === '') {
-                                this.textContent = '***';
-                            }
-                        });
-                        
-                        // Add paste event listener to handle cursor positioning
-                        fieldContentElement.addEventListener('paste', function(e) {
-                            e.stopPropagation(); // Prevent Quill from handling this paste event
-                            
-                            // Get the current selection
-                            const selection = window.getSelection();
-                            if (selection.rangeCount > 0) {
-                                const range = selection.getRangeAt(0);
-                                
-                                // Get the pasted text
-                                const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
-                                
-                                // Delete any selected content
-                                range.deleteContents();
-                                
-                                // Insert the pasted text at the cursor position
-                                const textNode = document.createTextNode(pastedText);
-                                range.insertNode(textNode);
-                                
-                                // Move cursor to end of pasted text
-                                range.setStartAfter(textNode);
-                                range.setEndAfter(textNode);
-                                selection.removeAllRanges();
-                                selection.addRange(range);
-                            }
-                            
-                            e.preventDefault(); // Prevent default paste behavior
-                        });
-                        
-                        // Mark that listeners have been added
-                        fieldContentElement.setAttribute('data-listeners-added', 'true');
+                        // Select all the *** text
+                        const range = document.createRange();
+                        const selection = window.getSelection();
+                        range.selectNodeContents(this);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
                     }
-                    
-                    // Add a zero-width space after the field component to prevent style inheritance
-                    if (afterText === '' || afterText.charAt(0) !== ' ') {
-                        const spacerNode = document.createTextNode('\u200B'); // Zero-width space
-                        parent.insertBefore(spacerNode, textNode);
-                    }
-                    
-                    // Update the remaining text
-                    currentText = afterText;
-                    offset = replacement.endIndex;
                 });
                 
-                // Update or remove the original text node
-                if (currentText) {
-                    textNode.textContent = currentText;
-                } else {
-                    parent.removeChild(textNode);
-                }
+                fieldContentElement.addEventListener('focus', function() {
+                    // If the content is just the placeholder ***, select it for easy overwriting
+                    if (this.textContent.trim() === '***') {
+                        setTimeout(() => {
+                            const range = document.createRange();
+                            const selection = window.getSelection();
+                            range.selectNodeContents(this);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                        }, 1); // Small delay to ensure focus is fully established
+                    }
+                });
+                
+                fieldContentElement.addEventListener('blur', function() {
+                    if (this.textContent.trim() === '') {
+                        this.textContent = '***';
+                    }
+                });
+                
+                // Add paste event listener to handle cursor positioning
+                fieldContentElement.addEventListener('paste', function(e) {
+                    e.stopPropagation(); // Prevent Quill from handling this paste event
+                    
+                    // Get the current selection
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        
+                        // Get the pasted text
+                        const pastedText = (e.clipboardData || window.clipboardData).getData('text/plain');
+                        
+                        // Delete any selected content
+                        range.deleteContents();
+                        
+                        // Insert the pasted text at the cursor position
+                        const textNode = document.createTextNode(pastedText);
+                        range.insertNode(textNode);
+                        
+                        // Move cursor to end of pasted text
+                        range.setStartAfter(textNode);
+                        range.setEndAfter(textNode);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    
+                    e.preventDefault(); // Prevent default paste behavior
+                });
+                
+                // Mark that listeners have been added
+                fieldContentElement.setAttribute('data-listeners-added', 'true');
             }
         });
         

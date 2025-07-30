@@ -8,8 +8,10 @@ from surgicai_api.api.fields import validate_uuid
 from surgicai_api.models.opnote import OpNote, OpNoteStatus
 from surgicai_api.services.optimization import (
     apply_optimization_suggestions_to_text,
+    generate_postop_diagnosis,
     get_optimization_questions,
     get_optimization_suggestions,
+    generate_procedures
 )
 from surgicai_api.ssr.views import check_jwt
 
@@ -195,6 +197,13 @@ class OptimizeNoteSuggestionsResource(Resource):
         op_note.text = apply_optimization_suggestions_to_text(
             op_note.text, existing["suggested_edits"]
         )
+        g.db.add(op_note)
+        g.db.flush()
+
+        # Generate postoperative diagnosis
+        ai_text = generate_postop_diagnosis(op_note.text, True)
+        ai_text = generate_procedures(ai_text, True)
+        op_note.text = ai_text
         g.db.add(op_note)
         g.db.commit()
 

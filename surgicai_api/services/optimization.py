@@ -1,3 +1,5 @@
+import re
+
 from surgicai_api.models.opnote import OpNote
 
 
@@ -117,3 +119,59 @@ def apply_optimization_suggestions_to_text(text: str, suggestions: list) -> OpNo
         text = text.replace(existing_text, suggested_text, 1)
 
     return text
+
+
+def generate_postop_diagnosis(text: str, should_insert: bool = False) -> str:
+    """
+    Generate a postoperative diagnosis based on the operative note text.
+
+    :param text: Operative note text
+    :return: Postoperative diagnosis string
+    """
+    # TODO: Implement logic to generate postoperative diagnosis from the operative note text.
+    postop_text = "Ascending and proximal hemiarch aortic dissection, status post ascending and hemiarch aortic replacement with 28mm Hemashield Dacron graft under circulatory arrest without cerebral perfusion."
+
+    if should_insert:
+        # Regex to match [aifield: Postoperative Diagnosis]...[/aifield] (including any content between)
+        pattern = r"\[aifield: Postoperative Diagnosis\][\s\S]*?\[/aifield\]"
+        if not re.search(pattern, text):
+            text += f"\n\nPOSTOPERATIVE DIAGNOSIS: [aifield: Postoperative Diagnosis][/aifield]"
+
+        # Replace any existing [aifield: Postoperative Diagnosis]...[/aifield] with the new content
+        text = re.sub(
+            pattern, f"[aifield: Postoperative Diagnosis]{postop_text}[/aifield]", text
+        )
+        return text
+
+    return postop_text
+
+
+def generate_procedures(text: str, should_insert: bool = False) -> str:
+    """
+    Generate a list of procedures based on the operative note text.
+
+    :param text: Operative note text
+    :return: Procedures string
+    """
+    procedures = [
+        "Procedure 1: Description",
+        "Procedure 2: Description",
+        "Procedure 3: Description",
+    ]
+    procedure_text = ""
+    for procedure in procedures:
+        procedure_text += f"\n  - {procedure}"
+
+    if should_insert:
+        # Regex to match [aifield: Procedures]...[/aifield] (including any content between)
+        pattern = r"\[aifield: Procedures\][\s\S]*?\[/aifield\]"
+        if not re.search(pattern, text):
+            text += f"\n\nPROCEDURES: [aifield: Procedures][/aifield]"
+
+        # Replace any existing [aifield: Procedures]...[/aifield] with the new content
+        text = re.sub(
+            pattern, f"[aifield: Procedures]{procedure_text}[/aifield]", text
+        )
+        return text
+
+    return procedure_text

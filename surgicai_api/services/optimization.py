@@ -154,13 +154,14 @@ def generate_procedures(text: str, should_insert: bool = False) -> str:
     :return: Procedures string
     """
     procedures = [
-        "Procedure 1: Description",
-        "Procedure 2: Description",
-        "Procedure 3: Description",
+        "Ascending aortic replacement with 28 hemashield dacron graft with sidearm under circulatory arrest",
+        "Independent interpretation of TEE",
+        "Bilateral Pleural Chest Tubes",
+        "Internal Rigid Fixation with Biomet 360 system",
     ]
     procedure_text = ""
-    for procedure in procedures:
-        procedure_text += f"\n  - {procedure}"
+    for index, procedure in enumerate(procedures):
+        procedure_text += f"\n  {index+1}. {procedure}"
 
     if should_insert:
         # Regex to match [aifield: Procedures]...[/aifield] (including any content between)

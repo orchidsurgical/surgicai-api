@@ -1318,11 +1318,11 @@ DIAGNOSIS:
     console.log(`Inserting ${fieldType} at cursor position:`, selection.index);
     
     if (fieldType === 'field') {
-      // Show custom field name input modal (reuse from template_fields.js)
-      if (typeof showFieldNameInput === 'function') {
-        showFieldNameInput();
+      // Insert simple field (just ***) like the slash menu does
+      if (typeof insertSimpleField === 'function') {
+        insertSimpleField();
       } else {
-        console.warn('showFieldNameInput function not available');
+        console.warn('insertSimpleField function not available');
         showToast('Field insertion feature is not available', 'warning');
       }
     } else if (fieldType === 'aifield') {

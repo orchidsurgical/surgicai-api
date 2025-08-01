@@ -9,9 +9,9 @@ from surgicai_api.models.opnote import OpNote, OpNoteStatus
 from surgicai_api.services.optimization import (
     apply_optimization_suggestions_to_text,
     generate_postop_diagnosis,
+    generate_procedures,
     get_optimization_questions,
     get_optimization_suggestions,
-    generate_procedures
 )
 from surgicai_api.ssr.views import check_jwt
 

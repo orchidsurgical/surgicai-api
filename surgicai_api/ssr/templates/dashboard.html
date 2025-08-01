@@ -556,6 +556,7 @@ function updateOperativeNotesList() {
             <div class="d-flex align-items-center mb-2">
               <span class="badge bg-primary text-white me-2">Operative Note</span>
               ${getStatusBadge(note.status)}
+              <span class="text-muted">&nbsp;&nbsp;${(note.title && note.title !== "Operative Note" ) ? note.title : ''}</span>
             </div>
 
             ${note.field_data && Object.keys(note.field_data).length > 0 ? `

@@ -170,9 +170,7 @@ def generate_procedures(text: str, should_insert: bool = False) -> str:
             text += f"\n\nPROCEDURES: [aifield: Procedures][/aifield]"
 
         # Replace any existing [aifield: Procedures]...[/aifield] with the new content
-        text = re.sub(
-            pattern, f"[aifield: Procedures]{procedure_text}[/aifield]", text
-        )
+        text = re.sub(pattern, f"[aifield: Procedures]{procedure_text}[/aifield]", text)
         return text
 
     return procedures

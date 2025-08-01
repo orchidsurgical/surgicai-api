@@ -5,6 +5,7 @@ from flask_restful import Resource
 from marshmallow import Schema, ValidationError, fields
 
 from surgicai_api.api.fields import DateTimeWithTZ, StrictUUID, validate_uuid
+from surgicai_api.api.pagination import paginate_query
 from surgicai_api.models import OpNote, OpNoteStatus
 from surgicai_api.ssr.views import check_jwt
 
@@ -62,12 +63,13 @@ class OpNoteListResource(Resource):
     method_decorators = [check_jwt]
 
     def get(self):
-        notes = (
-            g.db.query(OpNote)
-            .filter_by(owner_id=g.user.id)
-            .order_by(OpNote.created_at.desc())
-            .all()
-        )
+        notes = paginate_query(
+            g.db.query(OpNote).filter_by(owner_id=g.user.id), request.args
+        ).all()
+
+        if not notes:
+            return [], 200
+
         return schema.dump(notes, many=True), 200
 
     def post(self):

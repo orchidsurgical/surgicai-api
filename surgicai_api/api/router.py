@@ -13,6 +13,7 @@ from surgicai_api.api.optimize import (
     OptimizeNoteQuestionsResource,
     OptimizeNoteSuggestionsResource,
 )
+from surgicai_api.api.pagination import PaginationError
 from surgicai_api.api.template import TemplateListResource, TemplateResource
 from surgicai_api.api.transcribe import TranscribeCredentialsResource
 
@@ -27,6 +28,9 @@ class RestfulApi(Api):
 
         if isinstance(e, sqlalchemy.exc.IntegrityError):
             return jsonify({"message": "Object already exists."}), 400
+
+        if isinstance(e, PaginationError):
+            return jsonify({"message": [str(e)]}), 400
 
         return super().handle_error(e)
 

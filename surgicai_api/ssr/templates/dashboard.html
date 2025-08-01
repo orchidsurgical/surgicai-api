@@ -554,7 +554,8 @@ function updateOperativeNotesList() {
         <div class="d-flex w-100 justify-content-between align-items-start">
           <div class="flex-grow-1">
             <div class="d-flex align-items-center mb-2">
-              <span class="badge bg-primary text-white">Operative Note</span>
+              <span class="badge bg-primary text-white me-2">Operative Note</span>
+              ${getStatusBadge(note.status)}
             </div>
 
             ${note.field_data && Object.keys(note.field_data).length > 0 ? `
@@ -644,6 +645,22 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Generate status badge HTML based on note status
+function getStatusBadge(status) {
+  switch(status) {
+    case 'draft':
+      return '<span class="badge bg-secondary text-white"><i class="bi bi-file-text me-1"></i>Draft</span>';
+    case 'optimized':
+      return '<span class="badge bg-success text-white"><i class="bi bi-check-circle me-1"></i>Validated</span>';
+    case 'signed':
+      return '<span class="badge bg-info text-white"><i class="bi bi-pen me-1"></i>Signed</span>';
+    case 'submitted':
+      return '<span class="badge bg-primary text-white"><i class="bi bi-send me-1"></i>Submitted</span>';
+    default:
+      return '<span class="badge bg-light text-dark"><i class="bi bi-question-circle me-1"></i>Unknown</span>';
+  }
 }
 
 // Load templates from API

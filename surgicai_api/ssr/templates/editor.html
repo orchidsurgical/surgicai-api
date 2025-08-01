@@ -746,8 +746,11 @@
         </button>
       </div>
       <div class="action-buttons">
-        <button class="btn btn-sm btn-primary" onclick="optimizeNote()">
-          <i class="bi bi-check-circle me-1"></i>Validate & Code
+        <button class="btn btn-sm btn-primary" id="validateButton" onclick="optimizeNote()">
+          <i class="bi bi-check-circle me-1"></i>Validate
+        </button>
+        <button class="btn btn-sm btn-primary" id="copyButton" onclick="copyToClipboard()" style="display: none;">
+          <i class="bi bi-clipboard me-1"></i>Copy to Clipboard
         </button>
         <button class="btn btn-sm btn-outline-primary" onclick="saveDocument()" id="saveButton">
           <i class="bi bi-save me-1"></i>Save
@@ -962,9 +965,10 @@
   <i class="bi bi-question-circle"></i>
 </button>
 
-<!-- Validate Note Button -->
-<button class="optimize-fab" onclick="optimizeNote()">
-  <i class="bi bi-check-circle me-1"></i>Validate & Code
+<!-- Dynamic Action Button -->
+<button class="optimize-fab" id="actionFab" onclick="handleActionFab()">
+  <i class="bi bi-check-circle me-1" id="actionFabIcon"></i>
+  <span id="actionFabText">Validate</span>
 </button>
 {% endblock %}
 
@@ -1110,7 +1114,7 @@
         statusBadge.querySelector('i').className = 'bi bi-file-text me-1';
         break;
       case 'optimized':
-        statusText.textContent = 'Validated & Coded';
+        statusText.textContent = 'Validated';
         statusBadge.classList.add('optimized');
         statusBadge.querySelector('i').className = 'bi bi-magic me-1';
         break;
@@ -1124,13 +1128,62 @@
         statusBadge.classList.add('draft');
         statusBadge.querySelector('i').className = 'bi bi-question-circle me-1';
     }
+    
+    // Update the action button based on status
+    updateActionButton(status);
+  }
+  
+  function updateActionButton(status) {
+    const actionFab = document.getElementById('actionFab');
+    const actionFabIcon = document.getElementById('actionFabIcon');
+    const actionFabText = document.getElementById('actionFabText');
+    const validateButton = document.getElementById('validateButton');
+    const copyButton = document.getElementById('copyButton');
+    
+    // Update floating action button
+    if (actionFab && actionFabIcon && actionFabText) {
+      if (status === 'optimized' || status === 'signed') {
+        // Change to Copy to Clipboard button
+        actionFabIcon.className = 'bi bi-clipboard me-1';
+        actionFabText.textContent = 'Copy to Clipboard';
+      } else {
+        // Default to Validate button
+        actionFabIcon.className = 'bi bi-check-circle me-1';
+        actionFabText.textContent = 'Validate';
+      }
+    }
+    
+    // Update toolbar buttons
+    if (validateButton && copyButton) {
+      if (status === 'optimized' || status === 'signed') {
+        // Change validate button to outline style, show copy button as primary
+        validateButton.className = 'btn btn-sm btn-outline-primary';
+        copyButton.style.display = 'inline-block';
+      } else {
+        // Validate button as primary, hide copy button
+        validateButton.className = 'btn btn-sm btn-primary';
+        copyButton.style.display = 'none';
+      }
+    }
+  }
+  
+  function handleActionFab() {
+    if (!currentNote) return;
+    
+    if (currentNote.status === 'optimized' || currentNote.status === 'signed') {
+      // Call the copy to clipboard function
+      copyToClipboard();
+    } else {
+      // Call the optimize note function
+      optimizeNote();
+    }
   }
   
   function populateDocument(note) {
     // Update header
     document.getElementById('documentTitle').value = note.title || '';
     
-    // Update status badge
+    // Update status badge (this will also update the action button)
     updateStatusBadge(note.status);
     
     // Update last updated with better formatting

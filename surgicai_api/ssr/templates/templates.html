@@ -154,11 +154,6 @@
             <label for="templateName" class="form-label">Template Name *</label>
             <input type="text" class="form-control" id="templateName" name="name" required placeholder="Enter template name">
           </div>
-          <div class="mb-3">
-            <label for="templateTitle" class="form-label">Default Title</label>
-            <input type="text" class="form-control" id="templateTitle" name="title" placeholder="Default title for operative notes created from this template">
-            <div class="form-text">This will be the default title when creating new operative notes from this template.</div>
-          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -367,10 +362,10 @@ async function saveTemplate() {
     return;
   }
   
-  // Prepare data (no text field)
+  // Prepare data with default title for new templates
   const templateData = {
     name: formData.get('name'),
-    title: formData.get('title') || null
+    title: editingTemplateId ? (formData.get('title') || null) : 'Operative Note'
   };
   
   try {
@@ -397,11 +392,19 @@ async function saveTemplate() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('templateModal'));
     modal.hide();
     
-    // Show success message
-    showToast(editingTemplateId ? 'Template updated successfully!' : 'Template created successfully!', 'success');
-    
-    // Reload templates
-    loadTemplates();
+    if (editingTemplateId) {
+      // Show success message for edits
+      showToast('Template updated successfully!', 'success');
+      // Reload templates
+      loadTemplates();
+    } else {
+      // For new templates, redirect to template editor
+      showToast('Template created successfully! Redirecting to editor...', 'success');
+      // Redirect to template editor page after a brief delay
+      setTimeout(() => {
+        window.location.href = `/template_editor/${result.id}/`;
+      }, 1000);
+    }
     
   } catch (error) {
     console.error('Error saving template:', error);

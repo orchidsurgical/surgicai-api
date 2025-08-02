@@ -1,4 +1,5 @@
 from marshmallow import EXCLUDE, Schema, fields
+from sqlalchemy import or_
 from sqlalchemy.orm.query import Query as SQLAlchemyQuery
 
 
@@ -54,3 +55,37 @@ def paginate_query(
         query = query.order_by(column.desc())
 
     return query.offset((data["page"] - 1) * data["per_page"]).limit(data["per_page"])
+
+
+class SearchSchema(Schema):
+    term = fields.Str(load_default=None, allow_none=True)
+
+    class Meta:
+        ordered = True
+        unknown = EXCLUDE
+
+
+def search_query(
+    query: SQLAlchemyQuery,
+    url_parameters: dict,
+    search_fields: list,
+    schema_class: SearchSchema = SearchSchema,
+):
+    """
+    Search a SQLAlchemy query based on a search term and fields.
+
+    :param query: SQLAlchemy query object
+    :param term: Search term to filter results
+    :param search_fields: List of fields to search in
+    :return: Filtered query
+    """
+    schema = schema_class()
+    data = schema.load(url_parameters)
+
+    term = data.get("term", None)
+    if not term:
+        return query
+
+    model = query.column_descriptions[0]["entity"]
+    filters = [getattr(model, field).ilike(f"%{term}%") for field in search_fields]
+    return query.filter(or_(*filters))

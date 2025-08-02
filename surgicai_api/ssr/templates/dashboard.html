@@ -121,16 +121,14 @@
               <span class="input-group-text">
                 <i class="bi bi-search"></i>
               </span>
-              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes by content..." onkeyup="filterOpNotes()">
+              <input type="text" class="form-control" id="search-opnotes" placeholder="Search operative notes (min 3 characters)..." onkeyup="filterOpNotes()">
             </div>
           </div>
           <div class="col-md-4">
             <select class="form-select" id="sort-opnotes" onchange="sortOpNotes()">
-              <option value="operation_datetime_start">Sort by Date</option>
-              <option value="title">Sort by Title</option>
-
-              <option value="created_at">Sort by Created</option>
-              <option value="updated_at">Sort by Updated</option>
+              <option value="created_at">Created Time</option>
+              <option value="updated_at">Updated Time</option>
+              <option value="operation_datetime_start">Operation Time</option>
             </select>
           </div>
         </div>
@@ -159,6 +157,11 @@
       <div class="card-body p-0">
         <div id="schedule-list">
           <!-- Operative notes will be loaded here -->
+        </div>
+        <div class="text-center p-3" id="load-more-container" style="display: none;">
+          <button class="btn btn-outline-primary" id="load-more-btn" onclick="loadMoreNotes()" disabled>
+            <i class="bi bi-chevron-down me-1"></i>Load More
+          </button>
         </div>
       </div>
     </div>
@@ -304,6 +307,21 @@ let filteredOpNotes = [];
 let allTemplates = [];
 let selectedTemplate = null;
 
+// Pagination settings
+const itemsPerPage = 25;
+const orderByFields = {
+  "created_at": "Created Time",
+  "updated_at": "Updated Time",
+  "operation_datetime_start": "Operation Time",
+}
+let currentPage = 1;
+let hasMorePages = false;
+let isLoading = false;
+let orderByField = "created_at";
+let orderByDirection = "desc";
+let searchTerm = "";
+
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
   updateDateTime();
@@ -394,12 +412,32 @@ function updateDateTime() {
 }
 
 // Load operative notes from API
-function loadOperativeNotes() {
-  showOpNotesLoading(true);
+function loadOperativeNotes(page = 1, append = false) {
+  if (isLoading) return; // Prevent multiple simultaneous requests
   
-  fetch('/api/v1/opnote/', {
+  isLoading = true;
+  updateLoadMoreButton();
+  
+  if (!append) {
+    showOpNotesLoading(true);
+    currentPage = 1;
+  }
+  
+  const params = new URLSearchParams({
+    page: page,
+    per_page: itemsPerPage,
+    order_by: orderByField,
+    order_direction: orderByDirection
+  });
+
+  // Add search term if it exists and is 3+ characters
+  if (searchTerm && searchTerm.length >= 3) {
+    params.append('term', searchTerm);
+  }
+
+  fetch(`/api/v1/opnote/?${params.toString()}`, {
     method: 'GET',
-    credentials: 'include'
+    credentials: 'include',
   })
   .then(response => {
     if (!response.ok) {
@@ -408,15 +446,34 @@ function loadOperativeNotes() {
     return response.json();
   })
   .then(data => {
-    allOpNotes = data;
+    if (append) {
+      allOpNotes = allOpNotes.concat(data);
+    } else {
+      allOpNotes = data;
+    }
+    
+    // Update pagination state
+    currentPage = page;
+    hasMorePages = data.length >= itemsPerPage;
+    
     filteredOpNotes = [...allOpNotes];
     updateOperativeNotesList();
-    showOpNotesLoading(false);
+    updateLoadMoreButton();
+    
+    if (!append) {
+      showOpNotesLoading(false);
+    }
   })
   .catch(error => {
     console.error('Error loading operative notes:', error);
-    showOpNotesError();
-    showOpNotesLoading(false);
+    if (!append) {
+      showOpNotesError();
+      showOpNotesLoading(false);
+    }
+  })
+  .finally(() => {
+    isLoading = false;
+    updateLoadMoreButton();
   });
 }
 
@@ -459,51 +516,39 @@ function showOpNotesError() {
 
 // Filter operative notes based on search input
 function filterOpNotes() {
-  const searchTerm = document.getElementById('search-opnotes').value.toLowerCase();
+  const newSearchTerm = document.getElementById('search-opnotes').value.trim();
   
-  if (!searchTerm) {
-    filteredOpNotes = [...allOpNotes];
-  } else {
-    filteredOpNotes = allOpNotes.filter(note => {
-      const text = note.text?.toLowerCase() || '';
-      return text.includes(searchTerm);
-    });
+  // Only trigger server search if term changed and is 3+ characters or empty
+  if (newSearchTerm !== searchTerm) {
+    searchTerm = newSearchTerm;
+    
+    if (searchTerm.length >= 3 || searchTerm.length === 0) {
+      // Reload from server with search term
+      currentPage = 1;
+      hasMorePages = false;
+      allOpNotes = [];
+      loadOperativeNotes(1, false);
+    } else if (searchTerm.length === 0) {
+      // Reset to show all notes when search is cleared
+      filteredOpNotes = [...allOpNotes];
+      updateOperativeNotesList();
+    }
+    // For 1-2 character searches, do nothing (don't filter)
   }
-  
-  updateOperativeNotesList();
 }
 
 // Sort operative notes
 function sortOpNotes() {
   const sortBy = document.getElementById('sort-opnotes').value;
   
-  filteredOpNotes.sort((a, b) => {
-    let aValue, bValue;
-    
-    switch (sortBy) {
-      case 'operation_datetime_start':
-        aValue = a.operation_datetime_start ? new Date(a.operation_datetime_start) : new Date(0);
-        bValue = b.operation_datetime_start ? new Date(b.operation_datetime_start) : new Date(0);
-        return bValue - aValue; // Most recent first
-      case 'created_at':
-      case 'updated_at':
-        aValue = new Date(a[sortBy]);
-        bValue = new Date(b[sortBy]);
-        return bValue - aValue; // Most recent first
-      default:
-        aValue = a[sortBy] || '';
-        bValue = b[sortBy] || '';
-    }
-    
-    // For strings, case-insensitive comparison
-    if (typeof aValue === 'string') {
-      return aValue.toLowerCase().localeCompare(bValue.toLowerCase());
-    }
-    
-    return 0;
-  });
-  
-  updateOperativeNotesList();
+  // Update the orderByField and reload from page 1
+  if (sortBy !== orderByField) {
+    orderByField = sortBy;
+    currentPage = 1;
+    hasMorePages = false;
+    allOpNotes = [];
+    loadOperativeNotes(1, false);
+  }
 }
 
 // Function to update the operative notes list in the UI
@@ -607,7 +652,40 @@ function updateOperativeNotesList() {
 
 // Function to refresh operative notes list
 function refreshOperativeNotes() {
+  currentPage = 1;
+  hasMorePages = false;
+  searchTerm = "";
+  document.getElementById('search-opnotes').value = "";
   loadOperativeNotes();
+}
+
+// Load more notes (for pagination)
+function loadMoreNotes() {
+  if (!isLoading && hasMorePages) {
+    loadOperativeNotes(currentPage + 1, true);
+  }
+}
+
+// Update the load more button state
+function updateLoadMoreButton() {
+  const loadMoreContainer = document.getElementById('load-more-container');
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  
+  if (loadMoreContainer && loadMoreBtn) {
+    // Show/hide the container based on whether we have notes
+    loadMoreContainer.style.display = allOpNotes.length > 0 ? 'block' : 'none';
+    
+    // Update button state
+    loadMoreBtn.disabled = isLoading || !hasMorePages;
+    
+    if (isLoading) {
+      loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    } else if (hasMorePages) {
+      loadMoreBtn.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Load More';
+    } else {
+      loadMoreBtn.innerHTML = '<i class="bi bi-check me-1"></i>All notes loaded';
+    }
+  }
 }
 
 // Utility function to format dates
@@ -628,7 +706,11 @@ function refreshDashboard() {
   refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1 spinner-border spinner-border-sm"></i>Refreshing...';
   refreshBtn.disabled = true;
   
-  // Reload operative notes
+  // Reset pagination and reload operative notes
+  currentPage = 1;
+  hasMorePages = false;
+  searchTerm = "";
+  document.getElementById('search-opnotes').value = "";
   loadOperativeNotes();
   
   // Simulate other data refresh
@@ -646,6 +728,46 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Utility function to show toast messages
+function showToast(message, type = 'info') {
+  // Create toast container if it doesn't exist
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+    toastContainer.style.zIndex = '1050';
+    document.body.appendChild(toastContainer);
+  }
+
+  // Create toast element
+  const toastId = 'toast-' + Date.now();
+  const toastHtml = `
+    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <i class="bi bi-info-circle-fill text-${type} me-2"></i>
+        <strong class="me-auto">Notification</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body">
+        ${message}
+      </div>
+    </div>
+  `;
+  
+  toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+  
+  // Show the toast
+  const toastElement = document.getElementById(toastId);
+  const toast = new bootstrap.Toast(toastElement);
+  toast.show();
+  
+  // Remove toast element after it's hidden
+  toastElement.addEventListener('hidden.bs.toast', function() {
+    toastElement.remove();
+  });
 }
 
 // Generate status badge HTML based on note status

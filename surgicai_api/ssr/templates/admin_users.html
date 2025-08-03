@@ -507,11 +507,29 @@ let deletingUserId = null;
 let hijackingUserId = null;
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-  loadUsers();
-  loadOrganizations();
+document.addEventListener('DOMContentLoaded', async function() {
   setupEventListeners();
+  await loadInitialData();
 });
+
+// Load initial data in sequence
+async function loadInitialData() {
+  try {
+    showLoading(true);
+    
+    // Load organizations first
+    await loadOrganizations();
+    
+    // Then load users
+    await loadUsers();
+    
+    showLoading(false);
+  } catch (error) {
+    console.error('Error loading initial data:', error);
+    showToast('Error loading data: ' + error.message, 'danger');
+    showLoading(false);
+  }
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -566,7 +584,6 @@ function setupEventListeners() {
 // Load users from API
 async function loadUsers() {
   try {
-    showLoading(true);
     const response = await fetch('/api/v1/admin/users/');
     
     if (!response.ok) {
@@ -576,11 +593,10 @@ async function loadUsers() {
     users = await response.json();
     updateStats();
     filterAndDisplayUsers();
-    showLoading(false);
   } catch (error) {
     console.error('Error loading users:', error);
     showToast('Error loading users: ' + error.message, 'danger');
-    showLoading(false);
+    throw error; // Re-throw to be caught by loadInitialData
   }
 }
 
@@ -598,6 +614,7 @@ async function loadOrganizations() {
     
   } catch (error) {
     console.error('Error loading organizations:', error);
+    throw error; // Re-throw to be caught by loadInitialData
   }
 }
 

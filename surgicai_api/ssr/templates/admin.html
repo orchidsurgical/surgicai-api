@@ -26,7 +26,7 @@
   <!-- Admin Cards -->
   <div class="row g-4 mb-4">
     <!-- User Management -->
-    <div class="col-xl-6 col-lg-12">
+    <div class="col-xl-6 col-lg-6">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">
@@ -47,27 +47,28 @@
       </div>
     </div>
 
-    <!-- System Settings -->
-    <div class="col-xl-6 col-lg-12">
+    <!-- Organization Management -->
+    <div class="col-xl-6 col-lg-6">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">
-            <i class="bi bi-gear me-2"></i>System Settings
+            <i class="bi bi-building me-2"></i>Organization Management
           </h5>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-3">Configure system-wide settings and preferences</p>
+          <p class="text-muted mb-3">Manage organizations and their settings</p>
           <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-primary" onclick="showToast('System settings coming soon!', 'info')">
-              <i class="bi bi-gear me-1"></i>General Settings
-            </button>
-            <button class="btn btn-outline-primary" onclick="showToast('Email settings coming soon!', 'info')">
-              <i class="bi bi-envelope me-1"></i>Email Settings
+            <a href="{{ url_for('ssr.admin.admin_organizations') }}" class="btn btn-primary">
+              <i class="bi bi-building me-1"></i>Manage Organizations
+            </a>
+            <button class="btn btn-outline-primary" onclick="showToast('Organization reports coming soon!', 'info')">
+              <i class="bi bi-graph-up me-1"></i>Org Reports
             </button>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- Statistics and Logs -->

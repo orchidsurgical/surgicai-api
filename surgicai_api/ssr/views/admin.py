@@ -17,6 +17,12 @@ def admin_users():
     return render_template("admin_users.html")
 
 
+@admin_bp.route("/admin/organizations", methods=["GET"])
+@check_jwt(require_admin=True)
+def admin_organizations():
+    return render_template("admin_organizations.html")
+
+
 @admin_bp.route("/admin/test_error", methods=["GET"])
 @check_jwt
 def admin_test_error():

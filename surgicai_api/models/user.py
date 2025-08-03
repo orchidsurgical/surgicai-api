@@ -3,7 +3,8 @@ from enum import Enum
 import pytz
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SqlEnum
-from sqlalchemy import String
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from surgicai_api.models.base import BaseModel
@@ -12,10 +13,9 @@ from surgicai_api.models.base import BaseModel
 class UserType(str, Enum):
     """Enum for user types."""
 
-    ADMIN = "admin"
-    SURGEON = "surgeon"
-    ORG_ADMIN = "org_admin"
-    BILLER = "biller"
+    ADMIN = "admin"  # OperativeAI employees
+    SURGEON = "surgeon"  # Surgeons using the platform
+    ORGANIZATION = "organization"  # Organization non-surgeon employees
 
 
 class User(BaseModel):
@@ -29,6 +29,11 @@ class User(BaseModel):
     user_type = Column(SqlEnum(UserType), nullable=False, default=UserType.SURGEON)
     timezone = Column(String(64), nullable=True, default=None)
     last_login = Column(DateTime, nullable=True)
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     op_notes = relationship(
         "OpNote", back_populates="owner", lazy="dynamic", passive_deletes=True
@@ -36,6 +41,7 @@ class User(BaseModel):
     templates = relationship(
         "Template", back_populates="owner", lazy="dynamic", passive_deletes=True
     )
+    organization = relationship("Organization", back_populates="users", lazy="joined")
 
     def __repr__(self):
         return f"<User(email={self.email})>"

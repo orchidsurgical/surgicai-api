@@ -4,7 +4,16 @@ from flask_restful import Api
 from marshmallow import ValidationError
 
 from surgicai_api.api.admin.hijack import HijackResource
-from surgicai_api.api.admin.user import UserListResource, UserResource
+from surgicai_api.api.admin.organization import (
+    OrganizationListResource,
+    OrganizationResource,
+    OrganizationUserResource,
+)
+from surgicai_api.api.admin.user import (
+    SearchUserResource,
+    UserListResource,
+    UserResource,
+)
 from surgicai_api.api.fields import StrictUUID
 from surgicai_api.api.login import LoginResource, LogoutResource
 from surgicai_api.api.me import MeResource
@@ -64,4 +73,14 @@ api.add_resource(
 # Admin resources
 api.add_resource(UserListResource, "/admin/users/", strict_slashes=True)
 api.add_resource(UserResource, "/admin/users/<string:user_id>/", strict_slashes=True)
+api.add_resource(SearchUserResource, "/admin/users/search/", strict_slashes=True)
 api.add_resource(HijackResource, "/admin/hijack/", strict_slashes=True)
+api.add_resource(OrganizationListResource, "/admin/organizations/", strict_slashes=True)
+api.add_resource(
+    OrganizationResource, "/admin/organizations/<string:org_id>/", strict_slashes=True
+)
+api.add_resource(
+    OrganizationUserResource,
+    "/admin/organizations/<string:org_id>/users/",
+    strict_slashes=True,
+)

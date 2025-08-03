@@ -11,6 +11,7 @@ def create_user(
     prefix=None,
     first_name=None,
     last_name=None,
+    organization_id=None,
 ):
     """
     Create a new user with the given email, password, and user type.
@@ -24,6 +25,7 @@ def create_user(
         prefix=prefix,
         first_name=first_name,
         last_name=last_name,
+        organization_id=organization_id,
     )
     session.add(user)
     session.flush()

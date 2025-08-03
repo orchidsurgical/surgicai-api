@@ -17,6 +17,7 @@ class UserSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(load_only=True, required=True)
     user_type = fields.Enum(UserType, by_value=True, load_default=UserType.SURGEON)
+    organization_id = StrictUUID(allow_none=True)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
 
@@ -73,3 +74,25 @@ class UserResource(Resource):
         g.db.delete(user)
         g.db.commit()
         return "", 204
+
+
+class SearchUserResource(Resource):
+    method_decorators = [check_jwt(require_admin=True)]
+
+    class SearchSchema(Schema):
+        term = fields.Str(required=True)
+
+    def get(self):
+        data = self.SearchSchema().load(request.args)
+        term = data.get("term")
+
+        users = (
+            g.db.query(User)
+            .filter(
+                User.email.ilike(f"%{term}%")
+                | User.first_name.ilike(f"%{term}%")
+                | User.last_name.ilike(f"%{term}%")
+            )
+            .all()
+        )
+        return schema.dump(users, many=True), 200

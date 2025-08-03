@@ -22,6 +22,7 @@ class MeUserSchema(Schema):
     timezone = fields.Str(
         allow_none=True, validate=validate_timezone, load_default=None
     )
+    organization_id = StrictUUID(dump_only=True)
     password = fields.Str(load_only=True, required=False)
 
 

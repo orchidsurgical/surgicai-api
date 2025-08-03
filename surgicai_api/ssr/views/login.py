@@ -36,6 +36,12 @@ def login():
         password = request.form.get("password")
         user = authenticate_user_password(session, email, password)
         if user:
+            if user.user_type in [UserType.ORGANIZATION, UserType.SURGEON]:
+                # require organization for org or surgeon users
+                if not user.organization_id:
+                    flash("User does not belong to an organization.", "danger")
+                    return render_template("login.html")
+
             if request.args.get("next"):
                 resp = redirect(request.args.get("next"))
             else:

@@ -128,3 +128,18 @@ class OrganizationUserResource(Resource):
         g.db.commit()
 
         return {"message": "User removed from organization"}, 204
+
+
+class SearchOrganizationsResource(Resource):
+    method_decorators = [check_jwt(require_admin=True)]
+
+    class SearchSchema(Schema):
+        term = fields.Str(required=True)
+
+    def get(self):
+        term = self.SearchSchema().load(request.args)["term"]
+
+        orgs = (
+            g.db.query(Organization).filter(Organization.name.ilike(f"%{term}%")).all()
+        )
+        return schema.dump(orgs, many=True), 200

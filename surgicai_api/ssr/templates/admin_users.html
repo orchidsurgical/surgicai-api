@@ -188,6 +188,24 @@
   .breadcrumb-item.active {
     color: #6c757d;
   }
+  
+  .organization-suggestion {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .organization-suggestion:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .organization-suggestion:last-child {
+    border-bottom: none;
+  }
+  
+  .form-floating {
+    position: relative;
+  }
 </style>
 {% endblock %}
 
@@ -253,7 +271,7 @@
   <!-- Search and Filter -->
   <div class="search-filter-section">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="input-group">
           <span class="input-group-text">
             <i class="bi bi-search"></i>
@@ -261,13 +279,20 @@
           <input type="text" class="form-control" id="search-users" placeholder="Search users by name or email...">
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <select class="form-select" id="filter-user-type">
           <option value="">All User Types</option>
           <option value="admin">Admin</option>
           <option value="surgeon">Surgeon</option>
           <option value="org_admin">Org Admin</option>
           <option value="biller">Biller</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filter-organization">
+          <option value="">All Organizations</option>
+          <option value="no-org">No Organization</option>
+          <!-- Organizations will be loaded here -->
         </select>
       </div>
       <div class="col-md-3">
@@ -353,6 +378,25 @@
                   <option value="biller">Biller</option>
                 </select>
                 <label for="user_type">User Type *</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="organization_search" placeholder="Search for organization..." autocomplete="off">
+                <label for="organization_search">Organization (Optional)</label>
+                <input type="hidden" id="organization_id" name="organization_id">
+              </div>
+              <div id="organization-suggestions" class="dropdown-menu w-100" style="display: none; position: absolute; z-index: 1000;">
+                <!-- Organization suggestions will appear here -->
+              </div>
+              <div id="selected-organization" class="mt-2" style="display: none;">
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                  <span id="selected-org-name"></span>
+                  <button type="button" class="btn-close" onclick="clearOrganizationSelection()"></button>
+                </div>
               </div>
             </div>
           </div>
@@ -457,6 +501,7 @@
 <script>
 // Global variables
 let users = [];
+let organizations = [];
 let editingUserId = null;
 let deletingUserId = null;
 let hijackingUserId = null;
@@ -464,6 +509,7 @@ let hijackingUserId = null;
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
   loadUsers();
+  loadOrganizations();
   setupEventListeners();
 });
 
@@ -476,6 +522,11 @@ function setupEventListeners() {
   
   // Filter by user type
   document.getElementById('filter-user-type').addEventListener('change', function(e) {
+    filterAndDisplayUsers();
+  });
+  
+  // Filter by organization
+  document.getElementById('filter-organization').addEventListener('change', function(e) {
     filterAndDisplayUsers();
   });
   
@@ -493,6 +544,22 @@ function setupEventListeners() {
   // Password confirmation validation
   document.getElementById('confirm_password').addEventListener('input', function(e) {
     validatePasswordMatch();
+  });
+  
+  // Organization search
+  document.getElementById('organization_search').addEventListener('input', function(e) {
+    if (e.target.value.length >= 2) {
+      searchOrganizations(e.target.value);
+    } else {
+      hideOrganizationSuggestions();
+    }
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#organization_search') && !e.target.closest('#organization-suggestions')) {
+      hideOrganizationSuggestions();
+    }
   });
 }
 
@@ -517,6 +584,41 @@ async function loadUsers() {
   }
 }
 
+// Load organizations from API
+async function loadOrganizations() {
+  try {
+    const response = await fetch('/api/v1/admin/organizations/');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    organizations = await response.json();
+    populateOrganizationFilter();
+    
+  } catch (error) {
+    console.error('Error loading organizations:', error);
+  }
+}
+
+// Populate organization filter dropdown
+function populateOrganizationFilter() {
+  const select = document.getElementById('filter-organization');
+  
+  // Clear existing options except the first two
+  while (select.children.length > 2) {
+    select.removeChild(select.lastChild);
+  }
+  
+  // Add organization options
+  organizations.forEach(org => {
+    const option = document.createElement('option');
+    option.value = org.id;
+    option.textContent = org.name;
+    select.appendChild(option);
+  });
+}
+
 // Update statistics
 function updateStats() {
   const totalUsers = users.length;
@@ -534,6 +636,7 @@ function updateStats() {
 function filterAndDisplayUsers() {
   const searchTerm = document.getElementById('search-users').value.toLowerCase();
   const filterType = document.getElementById('filter-user-type').value;
+  const filterOrg = document.getElementById('filter-organization').value;
   const sortBy = document.getElementById('sort-users').value;
   
   let filteredUsers = users.filter(user => {
@@ -545,7 +648,11 @@ function filterAndDisplayUsers() {
     
     const matchesType = !filterType || user.user_type === filterType;
     
-    return matchesSearch && matchesType;
+    const matchesOrg = !filterOrg || 
+      (filterOrg === 'no-org' && !user.organization_id) ||
+      (filterOrg !== 'no-org' && user.organization_id === filterOrg);
+    
+    return matchesSearch && matchesType && matchesOrg;
   });
   
   // Sort users
@@ -582,6 +689,7 @@ function displayUsers(usersToDisplay) {
             <div class="flex-grow-1">
               <h5 class="card-title mb-1">${getUserDisplayName(user)}</h5>
               <p class="card-text text-muted mb-0">${user.email}</p>
+              ${user.organization_id ? `<small class="text-info">${getOrganizationName(user.organization_id)}</small>` : '<small class="text-muted">No organization</small>'}
             </div>
             <span class="user-type-badge user-type-${user.user_type}">
               ${formatUserType(user.user_type)}
@@ -647,6 +755,11 @@ function formatDate(dateString) {
   });
 }
 
+function getOrganizationName(orgId) {
+  const org = organizations.find(o => o.id === orgId);
+  return org ? org.name : 'Unknown Organization';
+}
+
 function showLoading(show) {
   const spinner = document.getElementById('loading-spinner');
   const container = document.getElementById('users-container');
@@ -668,6 +781,7 @@ function showAddUserModal() {
   document.getElementById('userForm').reset();
   document.getElementById('password').required = true;
   document.getElementById('confirm_password').required = true;
+  clearOrganizationSelection();
   const modal = new bootstrap.Modal(document.getElementById('userModal'));
   modal.show();
 }
@@ -688,6 +802,20 @@ function editUser(userId) {
   document.getElementById('user_type').value = user.user_type;
   document.getElementById('password').value = '';
   document.getElementById('confirm_password').value = '';
+  
+  // Set organization if user has one
+  if (user.organization_id) {
+    const org = organizations.find(o => o.id === user.organization_id);
+    if (org) {
+      document.getElementById('organization_id').value = org.id;
+      document.getElementById('organization_search').value = org.name;
+      document.getElementById('selected-org-name').textContent = org.name;
+      document.getElementById('selected-organization').style.display = 'block';
+      document.getElementById('organization_search').style.display = 'none';
+    }
+  } else {
+    clearOrganizationSelection();
+  }
   
   // Make password optional for editing
   document.getElementById('password').required = false;
@@ -773,7 +901,8 @@ async function saveUser() {
     first_name: formData.get('first_name'),
     last_name: formData.get('last_name'),
     email: formData.get('email'),
-    user_type: formData.get('user_type')
+    user_type: formData.get('user_type'),
+    organization_id: formData.get('organization_id') || null
   };
   
   // Add password if provided
@@ -895,6 +1024,69 @@ function validatePasswordMatch() {
     confirmField.classList.remove('is-invalid');
     return true;
   }
+}
+
+// Organization search and selection functions
+async function searchOrganizations(term) {
+  try {
+    const response = await fetch(`/api/v1/admin/organizations/search/?term=${encodeURIComponent(term)}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const searchResults = await response.json();
+    displayOrganizationSuggestions(searchResults);
+    
+  } catch (error) {
+    console.error('Error searching organizations:', error);
+    hideOrganizationSuggestions();
+  }
+}
+
+function displayOrganizationSuggestions(orgs) {
+  const suggestionsDiv = document.getElementById('organization-suggestions');
+  
+  if (orgs.length === 0) {
+    suggestionsDiv.innerHTML = '<div class="organization-suggestion text-muted">No organizations found</div>';
+  } else {
+    suggestionsDiv.innerHTML = orgs.map(org => `
+      <div class="organization-suggestion" onclick="selectOrganization('${org.id}', '${escapeHtml(org.name)}')">
+        <strong>${escapeHtml(org.name)}</strong>
+        ${org.description ? `<br><small class="text-muted">${escapeHtml(org.description)}</small>` : ''}
+      </div>
+    `).join('');
+  }
+  
+  suggestionsDiv.style.display = 'block';
+}
+
+function selectOrganization(orgId, orgName) {
+  document.getElementById('organization_id').value = orgId;
+  document.getElementById('organization_search').value = orgName;
+  document.getElementById('selected-org-name').textContent = orgName;
+  document.getElementById('selected-organization').style.display = 'block';
+  document.getElementById('organization_search').style.display = 'none';
+  hideOrganizationSuggestions();
+}
+
+function clearOrganizationSelection() {
+  document.getElementById('organization_id').value = '';
+  document.getElementById('organization_search').value = '';
+  document.getElementById('organization_search').style.display = 'block';
+  document.getElementById('selected-organization').style.display = 'none';
+  hideOrganizationSuggestions();
+}
+
+function hideOrganizationSuggestions() {
+  document.getElementById('organization-suggestions').style.display = 'none';
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // Toast notification function - use global function from base.html

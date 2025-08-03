@@ -8,6 +8,7 @@ from surgicai_api.api.admin.organization import (
     OrganizationListResource,
     OrganizationResource,
     OrganizationUserResource,
+    SearchOrganizationsResource,
 )
 from surgicai_api.api.admin.user import (
     SearchUserResource,
@@ -83,4 +84,7 @@ api.add_resource(
     OrganizationUserResource,
     "/admin/organizations/<string:org_id>/users/",
     strict_slashes=True,
+)
+api.add_resource(
+    SearchOrganizationsResource, "/admin/organizations/search/", strict_slashes=True
 )

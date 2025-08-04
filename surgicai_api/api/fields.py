@@ -24,10 +24,13 @@ class StrictUUID(fields.Field):
             raise ValidationError(self.error_messages["invalid_uuid"])
 
 
-def validate_uuid(value):
+def validate_uuid(value, load=False):
     """Custom validator to check if a value is a valid UUID."""
     try:
-        uuid.UUID(str(value))
+        if load:
+            value = uuid.UUID(str(value))
+        else:
+            uuid.UUID(str(value))
     except (ValueError, AttributeError, TypeError):
         raise ValidationError("Not a valid UUID.")
     return value

@@ -1,0 +1,932 @@
+{% extends "base.html" %}
+
+{% block title %}Organization Management | OperativeAI{% endblock %}
+
+{% block head %}
+<style>
+  .dashboard-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+  }
+  
+  .management-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+  }
+  
+  .management-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  
+  .management-card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.5rem;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .management-card-body {
+    padding: 1.5rem;
+  }
+  
+  .user-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .user-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .user-type-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .user-type-surgeon {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+  }
+  
+  .user-type-organization {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .btn-action {
+    padding: 0.375rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .btn-edit {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+  }
+  
+  .btn-edit:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+    transform: translateY(-1px);
+  }
+  
+  .btn-remove {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+  }
+  
+  .btn-remove:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+    transform: translateY(-1px);
+  }
+  
+  .stats-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  
+  .stats-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  
+  .user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+  }
+  
+  .loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .form-floating {
+    margin-bottom: 1rem;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  
+  .breadcrumb {
+    background: none;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+  
+  .breadcrumb-item.active {
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('ssr.home.home') }}">Dashboard</a></li>
+      <li class="breadcrumb-item active">Organization Management</li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="mb-0">
+            <i class="bi bi-building me-3"></i>
+            Organization Management
+          </h1>
+          <p class="mb-0 mt-2 opacity-75" id="organization-subtitle">Manage your organization settings and users</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <button class="btn btn-light btn-lg me-2" onclick="showEditOrganizationModal()">
+            <i class="bi bi-pencil me-2"></i>Edit Organization
+          </button>
+          <button class="btn btn-light btn-lg" onclick="showAddUserModal()">
+            <i class="bi bi-person-plus me-2"></i>Add User
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-number" id="total-users">-</div>
+        <div class="stats-label">Total Users</div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-number" id="surgeon-count">-</div>
+        <div class="stats-label">Surgeons</div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-number" id="staff-count">-</div>
+        <div class="stats-label">Staff Members</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organization Details Card -->
+  <div class="management-card">
+    <div class="management-card-header">
+      <h3 class="mb-0">
+        <i class="bi bi-info-circle me-2"></i>
+        Organization Details
+      </h3>
+    </div>
+    <div class="management-card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label text-muted">Organization Name</label>
+            <div class="fw-bold" id="org-name">Loading...</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label text-muted">Created Date</label>
+            <div class="fw-bold" id="org-created">Loading...</div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="mb-3">
+            <label class="form-label text-muted">Description</label>
+            <div class="fw-bold" id="org-description">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Management Card -->
+  <div class="management-card">
+    <div class="management-card-header d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">
+        <i class="bi bi-people me-2"></i>
+        User Management
+      </h3>
+      <div class="input-group" style="max-width: 300px;">
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+        <input type="text" class="form-control" id="search-users" placeholder="Search users...">
+      </div>
+    </div>
+    <div class="management-card-body">
+      <!-- Loading Spinner -->
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading users...</p>
+      </div>
+
+      <!-- Users List -->
+      <div class="row" id="users-container">
+        <!-- Users will be loaded here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state d-none" id="empty-state">
+        <i class="bi bi-people"></i>
+        <h3>No users found</h3>
+        <p>Add users to your organization to get started.</p>
+        <button class="btn btn-primary" onclick="showAddUserModal()">
+          <i class="bi bi-person-plus me-2"></i>Add First User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Organization Modal -->
+<div class="modal fade" id="organizationModal" tabindex="-1" aria-labelledby="organizationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="organizationModalLabel">
+          <i class="bi bi-building me-2"></i>
+          Edit Organization
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="organizationForm">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="org_name" name="name" placeholder="Organization Name" required>
+            <label for="org_name">Organization Name *</label>
+          </div>
+          <div class="form-floating">
+            <textarea class="form-control" id="org_description" name="description" placeholder="Description" style="height: 100px"></textarea>
+            <label for="org_description">Description (Optional)</label>
+          </div>
+          <div class="mt-3">
+            <small class="text-muted">* Required fields</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveOrganization()">
+          <i class="bi bi-check-lg me-2"></i>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">
+          <i class="bi bi-person-plus me-2"></i>
+          Add New User
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="userForm">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="user_prefix" name="prefix" placeholder="Prefix">
+                <label for="user_prefix">Prefix (Dr., Prof., etc.)</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="user_first_name" name="first_name" placeholder="First Name" required>
+                <label for="user_first_name">First Name *</label>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="user_last_name" name="last_name" placeholder="Last Name" required>
+                <label for="user_last_name">Last Name *</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="email" class="form-control" id="user_email" name="email" placeholder="Email" required>
+                <label for="user_email">Email Address *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select class="form-select" id="user_type" name="user_type" required>
+                  <option value="">Select User Type</option>
+                  <option value="surgeon">Surgeon</option>
+                  <option value="organization">Organization Staff</option>
+                </select>
+                <label for="user_type">User Type *</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="password" class="form-control" id="user_password" name="password" placeholder="Password" required>
+                <label for="user_password">Password *</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="password" class="form-control" id="user_confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+                <label for="user_confirm_password">Confirm Password *</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-3">
+            <small class="text-muted">* Required fields</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveUser()">
+          <i class="bi bi-check-lg me-2"></i>
+          <span id="save-user-btn-text">Save User</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remove User Confirmation Modal -->
+<div class="modal fade" id="removeUserModal" tabindex="-1" aria-labelledby="removeUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="removeUserModalLabel">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Remove User from Organization
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to remove this user from your organization?</p>
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> This user will lose access to organization resources but their account will remain active.
+        </div>
+        <div id="remove-user-info">
+          <!-- User info will be populated here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="confirmRemoveUser()">
+          <i class="bi bi-person-dash me-2"></i>
+          Remove User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Global variables
+let organization = null;
+let users = [];
+let editingUserId = null;
+let removingUserId = null;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+  loadOrganizationData();
+  loadUsers();
+  setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+  // Search functionality
+  document.getElementById('search-users').addEventListener('input', function(e) {
+    filterUsers();
+  });
+  
+  // Form validation
+  document.getElementById('userForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveUser();
+  });
+  
+  // Password confirmation validation
+  document.getElementById('user_confirm_password').addEventListener('input', function(e) {
+    validatePasswordMatch();
+  });
+}
+
+// Load organization data
+async function loadOrganizationData() {
+  try {
+    // Get current user's organization from /api/v1/me/ first
+    const meResponse = await fetch('/api/v1/me/');
+    if (!meResponse.ok) {
+      throw new Error('Failed to get user info');
+    }
+    const userInfo = await meResponse.json();
+    
+    if (!userInfo.organization_id) {
+      showToast('You are not associated with an organization', 'warning');
+      return;
+    }
+    
+    // Now get organization details
+    const orgResponse = await fetch(`/api/v1/organization/${userInfo.organization_id}/`);
+    if (!orgResponse.ok) {
+      throw new Error('Failed to load organization data');
+    }
+    
+    organization = await orgResponse.json();
+    updateOrganizationDisplay();
+    
+  } catch (error) {
+    console.error('Error loading organization data:', error);
+    showToast('Error loading organization data: ' + error.message, 'danger');
+  }
+}
+
+// Update organization display
+function updateOrganizationDisplay() {
+  if (!organization) return;
+  
+  document.getElementById('org-name').textContent = organization.name;
+  document.getElementById('org-description').textContent = organization.description || 'No description provided';
+  document.getElementById('org-created').textContent = formatDate(organization.created_at);
+  document.getElementById('organization-subtitle').textContent = `Manage ${organization.name} settings and users`;
+}
+
+// Load users from API
+async function loadUsers() {
+  try {
+    showLoading(true);
+    
+    if (!organization) {
+      await loadOrganizationData();
+    }
+    
+    if (!organization) {
+      showLoading(false);
+      return;
+    }
+    
+    const response = await fetch(`/api/v1/organization/${organization.id}/users/`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    users = await response.json();
+    updateStats();
+    filterUsers();
+    showLoading(false);
+  } catch (error) {
+    console.error('Error loading users:', error);
+    showToast('Error loading users: ' + error.message, 'danger');
+    showLoading(false);
+  }
+}
+
+// Update statistics
+function updateStats() {
+  const totalUsers = users.length;
+  const surgeonCount = users.filter(user => user.user_type === 'surgeon').length;
+  const staffCount = users.filter(user => user.user_type === 'organization').length;
+  
+  document.getElementById('total-users').textContent = totalUsers;
+  document.getElementById('surgeon-count').textContent = surgeonCount;
+  document.getElementById('staff-count').textContent = staffCount;
+}
+
+// Filter and display users
+function filterUsers() {
+  const searchTerm = document.getElementById('search-users').value.toLowerCase();
+  
+  let filteredUsers = users.filter(user => {
+    const matchesSearch = !searchTerm || 
+      user.first_name.toLowerCase().includes(searchTerm) ||
+      user.last_name.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm) ||
+      (user.prefix && user.prefix.toLowerCase().includes(searchTerm));
+    
+    return matchesSearch;
+  });
+  
+  displayUsers(filteredUsers);
+}
+
+// Display users in the grid
+function displayUsers(usersToDisplay) {
+  const container = document.getElementById('users-container');
+  const emptyState = document.getElementById('empty-state');
+  
+  if (usersToDisplay.length === 0) {
+    container.innerHTML = '';
+    emptyState.classList.remove('d-none');
+    return;
+  }
+  
+  emptyState.classList.add('d-none');
+  
+  container.innerHTML = usersToDisplay.map(user => `
+    <div class="col-lg-6 col-xl-4 mb-4">
+      <div class="card user-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="user-avatar me-3">
+              ${getUserInitials(user)}
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-1">${getUserDisplayName(user)}</h5>
+              <p class="card-text text-muted mb-0">${user.email}</p>
+              <small class="text-muted">Last login: ${user.last_login ? formatDate(user.last_login) : 'Never'}</small>
+            </div>
+            <span class="user-type-badge user-type-${user.user_type}">
+              ${formatUserType(user.user_type)}
+            </span>
+          </div>
+          
+          <div class="action-buttons">
+            <button class="btn btn-action btn-edit" onclick="editUser('${user.id}')">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </button>
+            <button class="btn btn-action btn-remove" onclick="showRemoveUserModal('${user.id}')">
+              <i class="bi bi-person-dash me-1"></i>Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Utility functions
+function getUserInitials(user) {
+  const first = user.first_name ? user.first_name.charAt(0) : '';
+  const last = user.last_name ? user.last_name.charAt(0) : '';
+  return (first + last).toUpperCase();
+}
+
+function getUserDisplayName(user) {
+  const parts = [user.prefix, user.first_name, user.last_name].filter(Boolean);
+  return parts.join(' ');
+}
+
+function formatUserType(type) {
+  const types = {
+    'surgeon': 'Surgeon',
+    'organization': 'Staff'
+  };
+  return types[type] || type;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+}
+
+function showLoading(show) {
+  const spinner = document.getElementById('loading-spinner');
+  const container = document.getElementById('users-container');
+  
+  if (show) {
+    spinner.style.display = 'block';
+    container.style.display = 'none';
+  } else {
+    spinner.style.display = 'none';
+    container.style.display = 'block';
+  }
+}
+
+// Modal functions
+function showEditOrganizationModal() {
+  if (!organization) return;
+  
+  document.getElementById('org_name').value = organization.name;
+  document.getElementById('org_description').value = organization.description || '';
+  
+  const modal = new bootstrap.Modal(document.getElementById('organizationModal'));
+  modal.show();
+}
+
+function showAddUserModal() {
+  editingUserId = null;
+  document.getElementById('userModalLabel').innerHTML = '<i class="bi bi-person-plus me-2"></i>Add New User';
+  document.getElementById('save-user-btn-text').textContent = 'Save User';
+  document.getElementById('userForm').reset();
+  document.getElementById('user_password').required = true;
+  document.getElementById('user_confirm_password').required = true;
+  const modal = new bootstrap.Modal(document.getElementById('userModal'));
+  modal.show();
+}
+
+function editUser(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  
+  editingUserId = userId;
+  document.getElementById('userModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit User';
+  document.getElementById('save-user-btn-text').textContent = 'Update User';
+  
+  // Populate form
+  document.getElementById('user_prefix').value = user.prefix || '';
+  document.getElementById('user_first_name').value = user.first_name;
+  document.getElementById('user_last_name').value = user.last_name;
+  document.getElementById('user_email').value = user.email;
+  document.getElementById('user_type').value = user.user_type;
+  document.getElementById('user_password').value = '';
+  document.getElementById('user_confirm_password').value = '';
+  
+  // Make password optional for editing
+  document.getElementById('user_password').required = false;
+  document.getElementById('user_confirm_password').required = false;
+  
+  const modal = new bootstrap.Modal(document.getElementById('userModal'));
+  modal.show();
+}
+
+function showRemoveUserModal(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  
+  removingUserId = userId;
+  
+  // Populate remove modal with user info
+  document.getElementById('remove-user-info').innerHTML = `
+    <div class="d-flex align-items-center">
+      <div class="user-avatar me-3">
+        ${getUserInitials(user)}
+      </div>
+      <div>
+        <div class="fw-bold">${getUserDisplayName(user)}</div>
+        <div class="text-muted">${user.email}</div>
+        <span class="user-type-badge user-type-${user.user_type} mt-1">
+          ${formatUserType(user.user_type)}
+        </span>
+      </div>
+    </div>
+  `;
+  
+  const modal = new bootstrap.Modal(document.getElementById('removeUserModal'));
+  modal.show();
+}
+
+// Save organization
+async function saveOrganization() {
+  const form = document.getElementById('organizationForm');
+  const formData = new FormData(form);
+  
+  // Validate form
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  // Prepare data
+  const orgData = {
+    name: formData.get('name'),
+    description: formData.get('description')
+  };
+  
+  try {
+    const response = await fetch(`/api/v1/organization/${organization.id}/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orgData)
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update organization');
+    }
+    
+    organization = await response.json();
+    updateOrganizationDisplay();
+    
+    showToast('Organization updated successfully!', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('organizationModal')).hide();
+    
+  } catch (error) {
+    console.error('Error saving organization:', error);
+    showToast('Error saving organization: ' + error.message, 'danger');
+  }
+}
+
+// Save user (create or update)
+async function saveUser() {
+  const form = document.getElementById('userForm');
+  const formData = new FormData(form);
+  
+  // Validate form
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  // Validate password match
+  if (!validatePasswordMatch()) {
+    return;
+  }
+  
+  // Prepare data
+  const userData = {
+    prefix: formData.get('prefix'),
+    first_name: formData.get('first_name'),
+    last_name: formData.get('last_name'),
+    email: formData.get('email'),
+    user_type: formData.get('user_type')
+  };
+  
+  // Add password if provided
+  const password = formData.get('password');
+  if (password) {
+    userData.password = password;
+  }
+  
+  try {
+    let response;
+    if (editingUserId) {
+      // Update existing user
+      response = await fetch(`/api/v1/organization/${organization.id}/users/${editingUserId}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+    } else {
+      // Create new user
+      response = await fetch(`/api/v1/organization/${organization.id}/users/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+    }
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to save user');
+    }
+    
+    const savedUser = await response.json();
+    
+    if (editingUserId) {
+      // Update existing user in array
+      const index = users.findIndex(u => u.id === editingUserId);
+      if (index !== -1) {
+        users[index] = savedUser;
+      }
+      showToast('User updated successfully!', 'success');
+    } else {
+      // Add new user to array
+      users.push(savedUser);
+      showToast('User created successfully!', 'success');
+    }
+    
+    updateStats();
+    filterUsers();
+    bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+    
+  } catch (error) {
+    console.error('Error saving user:', error);
+    showToast('Error saving user: ' + error.message, 'danger');
+  }
+}
+
+// Confirm remove user
+async function confirmRemoveUser() {
+  if (!removingUserId) return;
+  
+  try {
+    const response = await fetch(`/api/v1/organization/${organization.id}/users/${removingUserId}/`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to remove user');
+    }
+    
+    // Remove user from array
+    users = users.filter(u => u.id !== removingUserId);
+    updateStats();
+    filterUsers();
+    
+    showToast('User removed from organization successfully!', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('removeUserModal')).hide();
+    
+  } catch (error) {
+    console.error('Error removing user:', error);
+    showToast('Error removing user: ' + error.message, 'danger');
+  }
+}
+
+// Validate password match
+function validatePasswordMatch() {
+  const password = document.getElementById('user_password').value;
+  const confirmPassword = document.getElementById('user_confirm_password').value;
+  
+  if (password && password !== confirmPassword) {
+    showToast('Passwords do not match', 'danger');
+    return false;
+  }
+  return true;
+}
+</script>
+{% endblock %}

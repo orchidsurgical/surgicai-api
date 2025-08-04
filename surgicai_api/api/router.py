@@ -23,6 +23,11 @@ from surgicai_api.api.optimize import (
     OptimizeNoteQuestionsResource,
     OptimizeNoteSuggestionsResource,
 )
+from surgicai_api.api.organization import (
+    OrganizationManagementResource,
+    OrganizationUserDetailManagementResource,
+    OrganizationUserManagementResource,
+)
 from surgicai_api.api.pagination import PaginationError
 from surgicai_api.api.template import TemplateListResource, TemplateResource
 from surgicai_api.api.transcribe import TranscribeCredentialsResource
@@ -69,6 +74,23 @@ api.add_resource(
 )
 api.add_resource(
     TranscribeCredentialsResource, "/transcribe/credentials/", strict_slashes=True
+)
+
+# Organization management resources
+api.add_resource(
+    OrganizationManagementResource,
+    "/organization/<string:organization_id>/",
+    strict_slashes=True,
+)
+api.add_resource(
+    OrganizationUserManagementResource,
+    "/organization/<string:organization_id>/users/",
+    strict_slashes=True,
+)
+api.add_resource(
+    OrganizationUserDetailManagementResource,
+    "/organization/<string:organization_id>/users/<string:user_id>/",
+    strict_slashes=True,
 )
 
 # Admin resources

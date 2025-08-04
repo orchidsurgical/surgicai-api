@@ -16,7 +16,7 @@ login_bp = Blueprint("login", __name__)
 REDIRECT_USER_TYPE = {
     UserType.ADMIN: "ssr.admin.admin",
     UserType.SURGEON: "ssr.home.home",
-    UserType.ORGANIZATION: "ssr.home.home",  # eventually
+    UserType.ORGANIZATION: "ssr.management.management",
 }
 
 

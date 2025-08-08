@@ -22,5 +22,7 @@ class Config:
     EMAIL_HANDLER_CLASS = env.str("EMAIL_HANDLER_CLASS", default=None)
     EMAIL_QUEUE_URL = env.str("EMAIL_QUEUE_URL", default=None)
 
+    OPENAI_API_KEY = env.str("OPENAI_API_KEY", default=None)
+
 
 config = Config()

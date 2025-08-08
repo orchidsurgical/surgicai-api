@@ -206,6 +206,11 @@
               </select>
               <div class="form-text">Choose a template to pre-populate the operative note content</div>
             </div>
+            <div class="col-12">
+              <label for="operativeDescription" class="form-label">Operative Description (Optional)</label>
+              <textarea class="form-control" id="operativeDescription" name="operative_description" rows="3" placeholder="Provide a brief description of the procedure to help AI populate the template..."></textarea>
+              <div class="form-text">Brief description of the procedure that will be used to intelligently populate the selected template</div>
+            </div>
             <div class="col-12" style="display: none;">
               <label for="title" class="form-label">Title</label>
               <input type="text" class="form-control" id="title" required placeholder="Enter operative note title" value="Operative Note">
@@ -830,8 +835,7 @@ function updateTemplateDropdown() {
 // Handle template selection
 function onTemplateSelected() {
   const templateSelect = document.getElementById('templateSelect');
-  // Remove title input reference since it's now hidden with default value
-
+  
   if (!templateSelect) return;
 
   const templateId = templateSelect.value;
@@ -842,26 +846,9 @@ function onTemplateSelected() {
     return;
   }
   
-  // Fetch the full template details including content
-  fetch(`/api/v1/template/${templateId}`, {
-    method: 'GET',
-    credentials: 'include'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(template => {
-    selectedTemplate = template;
-    // No longer populating title since it's hidden with default value
-    console.log('Template selected:', template);
-  })
-  .catch(error => {
-    console.error('Error loading template details:', error);
-    selectedTemplate = null;
-  });
+  // Store the selected template ID for use when creating the note
+  selectedTemplate = { id: templateId };
+  console.log('Template selected:', templateId);
 }
 
 // Save new operative note (updated to refresh list after creation)
@@ -875,16 +862,34 @@ function saveNewOperativeNote() {
   // Get form data
   const formData = {
     operation_datetime_start: document.getElementById('startDateTime').value || null,
-    title: document.getElementById('title').value,
-    text: selectedTemplate ? selectedTemplate.text : null
+    title: document.getElementById('title').value
   };
+  
+  // Add template_id if a template is selected
+  if (selectedTemplate && selectedTemplate.id) {
+    formData.template_id = selectedTemplate.id;
+  }
+  
+  // Add operative_description if provided
+  const operativeDescription = document.getElementById('operativeDescription').value.trim();
+  if (operativeDescription) {
+    formData.operative_description = operativeDescription;
+  }
   
   // No need to validate end time since it's been removed
   
-  // Show loading state
+  // Show loading state with appropriate message
   const saveBtn = document.querySelector('button[onclick="saveNewOperativeNote()"]');
   const originalText = saveBtn.innerHTML;
-  saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+  
+  // Check if we have both template and description for AI generation
+  const hasAiGeneration = selectedTemplate && selectedTemplate.id && operativeDescription;
+  
+  if (hasAiGeneration) {
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>OperativeAI is writing your op note...';
+  } else {
+    saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+  }
   saveBtn.disabled = true;
   
   // Make AJAX request with cookies

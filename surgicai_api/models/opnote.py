@@ -36,6 +36,7 @@ class OpNote(BaseModel):
     operation_datetime_end = Column(DateTime, nullable=True)
     text = Column(Text, nullable=True)
     optimization_metadata = Column(JsonEncodedDict)
+    operative_description = Column(Text, nullable=True)
 
     owner = relationship("User", back_populates="op_notes")
 

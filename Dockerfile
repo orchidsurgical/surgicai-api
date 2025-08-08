@@ -25,6 +25,7 @@ FROM base AS prod
 
 # Install prod dependencies
 RUN poetry install --without dev
+RUN poetry run python -m spacy download en_core_web_lg
 
 # Start prod service
 CMD [ "make", "run-prod" ]

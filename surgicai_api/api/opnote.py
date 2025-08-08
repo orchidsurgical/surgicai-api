@@ -6,7 +6,9 @@ from marshmallow import Schema, ValidationError, fields
 
 from surgicai_api.api.fields import DateTimeWithTZ, StrictUUID, validate_uuid
 from surgicai_api.api.pagination import paginate_query, search_query
-from surgicai_api.models import OpNote, OpNoteStatus
+from surgicai_api.models import OpNote, OpNoteStatus, Template
+from surgicai_api.services.anonymize import anonymize_text, reidentify_text
+from surgicai_api.services.openai.note import write_note
 from surgicai_api.ssr.views import check_jwt
 
 
@@ -25,6 +27,8 @@ class OpNoteSchema(Schema):
     updated_at = DateTimeWithTZ(dump_only=True)
     optimization_metadata = fields.Dict(dump_only=True, dump_default={})
     field_data = fields.Method("extract_field_data", dump_only=True, allow_none=True)
+    operative_description = fields.Str(allow_none=True)
+    template_id = StrictUUID(required=False, allow_none=True, load_only=True)
 
     def extract_field_data(self, instance):
         """
@@ -77,6 +81,28 @@ class OpNoteListResource(Resource):
             data = schema.load(request.json)
         except ValidationError as err:
             return {"errors": err.messages}, 400
+
+        if (template_id := data.pop("template_id", None)) and data.get("text") is None:
+            data["text"] = (
+                g.db.query(Template)
+                .filter_by(id=template_id, owner_id=g.user.id)
+                .first()
+                .text
+            )
+
+        if description := data.get("operative_description", None):
+            # Anonymize the description if it exists
+            anon_description, replacement_map = anonymize_text(description)
+            # Write the note using OpenAI's API
+            note_text = write_note(
+                operative_description=anon_description,
+                template_text=data.get("text"),
+                surgeon_name=g.user.full_name
+            )
+            # Re-identify the anonymized text
+            note_text = reidentify_text(note_text, replacement_map)
+            data["text"] = note_text
+
         note = OpNote(owner_id=str(g.user.id), **data)
         g.db.add(note)
         g.db.commit()
